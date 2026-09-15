@@ -52,7 +52,7 @@
         <a href="?view=list&tab={{ tab }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" aria-label="List view" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:9999px;text-decoration:none;font-size:11.5px;{% if view_mode == 'list' %}background:var(--muted);color:var(--primary);font-weight:600{% else %}color:var(--subtle){% endif %}">{% lucide "list" %}<span>List</span></a>
         <a href="?view=board&tab={{ tab }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" aria-label="Board view" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:9999px;text-decoration:none;font-size:11.5px;{% if view_mode == 'board' %}background:var(--muted);color:var(--primary);font-weight:600{% else %}color:var(--subtle){% endif %}">{% lucide "columns-3" %}<span>Board</span></a>
       </div>
-      {% if membership.role == 'owner' or membership.role == 'manager' %}<a href="{% url 'campaign_create' %}" class="kargul-btn kargul-btn-primary">{% lucide "plus" %}<span>New Campaign</span></a>{% endif %}
+      {% if membership.role == 'communications_manager' %}<a href="{% url 'campaign_create' %}" class="kargul-btn kargul-btn-primary">{% lucide "plus" %}<span>New Campaign</span></a>{% endif %}
     </div>
   </form>
 

@@ -18,5 +18,5 @@ def can_manage(user, campaign):
         user=user,
         organization=campaign.organization,
         active=True,
-        role__in=["owner", "manager"],
+        role=Membership.Role.COMMUNICATIONS_MANAGER,
     ).exists()

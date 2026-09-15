@@ -498,7 +498,7 @@ def campaigns_list(request):
 @login_required
 def campaign_create(request):
     membership = membership_for(request.user)
-    if not membership or membership.role not in ("owner", "manager"):
+    if not membership or membership.role != Membership.Role.COMMUNICATIONS_MANAGER:
         raise PermissionDenied
     form = CampaignForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -1059,6 +1059,5 @@ def calendar_event_create(request):
         return redirect(f"/calendar/?date={ev_date.strftime('%Y-%m-%d')}")
 
     return redirect("calendar_view")
-
 
 

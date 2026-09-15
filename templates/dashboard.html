@@ -25,7 +25,7 @@
         {% lucide "arrow-right" %}
         <span>View Pipeline</span>
       </a>
-      {% if membership.role == 'owner' or membership.role == 'manager' %}
+      {% if membership.role == 'communications_manager' %}
         <a href="{% url 'campaign_create' %}" class="kargul-btn kargul-btn-primary">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2.5v7M2.5 6h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <span>New Campaign</span>

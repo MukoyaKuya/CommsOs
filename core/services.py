@@ -39,7 +39,7 @@ def audit(user, campaign, action, details=None):
 def create_campaign(user, values):
     membership = (
         Membership.objects.select_related("organization")
-        .filter(user=user, active=True, role__in=["owner", "manager"])
+        .filter(user=user, active=True, role=Membership.Role.COMMUNICATIONS_MANAGER)
         .first()
     )
     if not membership:

@@ -24,8 +24,8 @@ class CampaignFlowTests(TestCase):
         self.other = get_user_model().objects.create_user("other", password="safe-test-password")
         self.org = Organization.objects.create(name="One")
         self.other_org = Organization.objects.create(name="Two")
-        Membership.objects.create(user=self.user, organization=self.org, role="manager")
-        Membership.objects.create(user=self.other, organization=self.other_org, role="manager")
+        Membership.objects.create(user=self.user, organization=self.org, role=Membership.Role.COMMUNICATIONS_MANAGER)
+        Membership.objects.create(user=self.other, organization=self.other_org, role=Membership.Role.COMMUNICATIONS_MANAGER)
         self.campaign = Campaign.objects.create(
             organization=self.org,
             name="Safety",
@@ -172,7 +172,7 @@ class CampaignFlowTests(TestCase):
         contributor = get_user_model().objects.create_user(
             "contributor", password="safe-test-password"
         )
-        Membership.objects.create(user=contributor, organization=self.org, role="contributor")
+        Membership.objects.create(user=contributor, organization=self.org, role=Membership.Role.COMMUNICATIONS_OFFICER)
         with self.assertRaises(PermissionDenied):
             services.generate_strategy(contributor, self.campaign)
 
@@ -355,4 +355,3 @@ class CampaignFlowTests(TestCase):
         other_res = self.client.get(reverse("calendar_view"))
         self.assertEqual(other_res.status_code, 200)
         self.assertNotContains(other_res, "Strategy Sync")
-
