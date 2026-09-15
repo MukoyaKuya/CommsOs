@@ -22,21 +22,23 @@ class Organization(Stamp):
 
 class Membership(Stamp):
     class Role(models.TextChoices):
-        OWNER = "owner", "Owner"
-        MANAGER = "manager", "Manager"
-        CONTRIBUTOR = "contributor", "Contributor"
+        COMMUNICATIONS_MANAGER = "communications_manager", "Communications Manager"
+        COMMUNICATIONS_OFFICER = "communications_officer", "Communications Officer"
+        SUPPORT_STAFF = "support_staff", "Support Staff"
+        INTERN = "intern", "Intern"
         VIEWER = "viewer", "Viewer"
 
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, related_name="memberships"
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=12, choices=Role.choices)
+    role = models.CharField(max_length=32, choices=Role.choices)
     active = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["organization", "user"], name="unique_membership")
+            models.UniqueConstraint(fields=["organization", "user"], name="unique_membership"),
+            models.UniqueConstraint(fields=["user"], name="one_membership_per_user"),
         ]
 
 
@@ -189,4 +191,3 @@ class CalendarEvent(Stamp):
 
     def __str__(self):
         return f"{self.title} ({self.date})"
-
