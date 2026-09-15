@@ -30,7 +30,11 @@ class AutoLoginMiddleware:
                 org = Organization.objects.first()
                 if not org:
                     org = Organization.objects.create(name="CommsOS Demo")
-                Membership.objects.create(user=user, organization=org, role="manager")
+                Membership.objects.create(
+                    user=user,
+                    organization=org,
+                    role=Membership.Role.COMMUNICATIONS_MANAGER,
+                )
 
             request.user = user
 

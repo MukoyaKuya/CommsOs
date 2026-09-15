@@ -29,10 +29,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "core.middleware.AutoLoginMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+COMMSOS_DEMO_AUTO_LOGIN = DEBUG and os.getenv("COMMSOS_DEMO_AUTO_LOGIN", "0") == "1"
+if COMMSOS_DEMO_AUTO_LOGIN:
+    auth_index = MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware")
+    MIDDLEWARE.insert(auth_index + 1, "core.middleware.AutoLoginMiddleware")
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {

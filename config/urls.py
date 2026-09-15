@@ -1,14 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
+from accounts.views import RoleLoginView, dashboard_router
 from core import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("login/", auth_views.LoginView.as_view(template_name="login.html", redirect_authenticated_user=True), name="login"),
+    path("login/", RoleLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", views.landing, name="landing"),
-    path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/", dashboard_router, name="dashboard"),
+    path("accounts/", include("accounts.urls")),
     path("campaigns/", views.campaigns_list, name="campaigns_list"),
     path("calendar/", views.calendar_view, name="calendar_view"),
     path("calendar/events/new/", views.calendar_event_create, name="calendar_event_create"),
