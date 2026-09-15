@@ -1,11 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
 
-:root {
-  /* Ultra-Clean Modern SaaS Light Mode Tokens (Linear / Attio / Kargul Direction) */
+/* ==========================================================================
+   CommsOS Adaptive Theme System
+   Defaults to Light Mode; Detects & Honors OS Dark Mode; User Override Supported
+   ========================================================================== */
+
+:root, [data-theme="light"] {
+  /* Modern SaaS Light Mode Tokens (Linear / Attio / Kargul Direction) */
   --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
+  --card-subtle: #f8fafc;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   --primary: #4338ca;
@@ -21,7 +27,8 @@
   --border: #e2e8f0;
   --border-subtle: #f1f5f9;
   --border-strong: #cbd5e1;
-  --input: #e2e8f0;
+  --input: #ffffff;
+  --input-border: #cbd5e1;
   --ring: #94a3b8;
 
   /* Sidebar Tokens */
@@ -50,7 +57,7 @@
   --track: #e2e8f0;
   --status: #10b981;
 
-  /* High-Contrast Light Mode Status Tag Tokens */
+  /* Status Tag Tokens */
   --tag-blue-bg: #eff6ff;
   --tag-blue-border: #bfdbfe;
   --tag-blue-text: #1d4ed8;
@@ -81,6 +88,100 @@
 
   --radius: 0.5rem;
   --kargul-bevel-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05), inset 0px 1px 0px rgba(255, 255, 255, 0.8), 0 0 0 1px #e2e8f0;
+  --card-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  --table-head-bg: #f8fafc;
+  --table-row-bg: #ffffff;
+  --table-hover-bg: #f8fafc;
+  --modal-backdrop-bg: rgba(15, 23, 42, 0.4);
+}
+
+/* Obsidian Dark Mode Tokens (Kargul Studio Sales CRM Direction) */
+[data-theme="dark"] {
+  --background: #161616;
+  --foreground: #f9fbff;
+  --card: #1b1d20;
+  --card-foreground: #f9fbff;
+  --card-subtle: #17181a;
+  --popover: #161616;
+  --popover-foreground: #f9fbff;
+  --primary: #4124fb;
+  --primary-hover: #351cd9;
+  --primary-foreground: #f9fbff;
+  --secondary: #1e1e1e;
+  --secondary-foreground: #f9fbff;
+  --muted: #2a2a2a;
+  --muted-foreground: #7f7f7f;
+  --accent: #2a2a2a;
+  --accent-foreground: #f9fbff;
+  --destructive: #f97373;
+  --border: #232323;
+  --border-subtle: #1e1e1e;
+  --border-strong: #363636;
+  --input: #1e1e1e;
+  --input-border: #363636;
+  --ring: #676767;
+
+  /* Sidebar Tokens */
+  --sidebar: #171717;
+  --sidebar-foreground: #7f7f7f;
+  --sidebar-primary: #2a2a2a;
+  --sidebar-primary-foreground: #f9fbff;
+  --sidebar-accent: #181818;
+  --sidebar-accent-foreground: #f9fbff;
+  --sidebar-border: #232323;
+  --sidebar-ring: #676767;
+  --sidebar-width: 254px;
+
+  /* Typography & Details */
+  --line-strong: #393939;
+  --subtle: #7f7f7f;
+  --faint: #454545;
+  --soft: #a4a4a4;
+  --chip: #cfcfcf;
+  --icon: #d0d4dd;
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --danger: #f97373;
+  --trend: #00b562;
+  --trend-muted: #395e4d;
+  --track: #3a3a3a;
+  --status: #16c89e;
+
+  /* Dark Status Tag Tokens */
+  --tag-blue-bg: #1d2b3e;
+  --tag-blue-border: #23354c;
+  --tag-blue-text: #bfdbfe;
+
+  --tag-green-bg: #1f3a2d;
+  --tag-green-border: #275137;
+  --tag-green-text: #b1ebc5;
+
+  --tag-amber-bg: #31221b;
+  --tag-amber-border: #6c4830;
+  --tag-amber-text: #fed7aa;
+
+  --tag-orange-bg: #3e291d;
+  --tag-orange-border: #764d35;
+  --tag-orange-text: #eeb390;
+
+  --tag-purple-bg: #231f3a;
+  --tag-purple-border: #4b437b;
+  --tag-purple-text: #b7aee9;
+
+  --tag-teal-bg: #102a27;
+  --tag-teal-border: #3b6149;
+  --tag-teal-text: #16c89e;
+
+  --tag-neutral-bg: #2a2a2a;
+  --tag-neutral-border: #363636;
+  --tag-neutral-text: #cfcfcf;
+
+  --kargul-bevel-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.4), inset 0px 1px 0px 0px rgba(255, 255, 255, 0.1), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --table-head-bg: #17181a;
+  --table-row-bg: #1b1d20;
+  --table-hover-bg: #1f2125;
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.75);
 }
 
 /* Global Reset & Typography */
@@ -95,6 +196,7 @@ html, body {
   padding: 0 !important;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom Scrollbar for inner panes */
@@ -106,11 +208,11 @@ html, body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border-strong);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--subtle);
 }
 
 /* Tactile Micro-Bevel Utility */
@@ -139,12 +241,13 @@ html, body {
   height: 100dvh;
   position: relative;
   z-index: 20;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .kargul-sidebar-header {
   padding: 14px 16px;
   border-bottom: 1px solid var(--sidebar-border);
-  background-color: #ffffff;
+  background-color: var(--sidebar-accent);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -215,7 +318,7 @@ html, body {
 
 .kargul-nav-item:hover {
   color: var(--foreground);
-  background-color: #f1f5f9;
+  background-color: var(--muted);
 }
 
 .kargul-nav-item:hover svg {
@@ -223,10 +326,10 @@ html, body {
 }
 
 .kargul-nav-item.active {
-  background-color: #f1f5f9;
-  color: var(--primary);
+  background-color: var(--sidebar-primary);
+  color: var(--foreground);
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px #cbd5e1;
+  box-shadow: var(--kargul-bevel-shadow);
 }
 
 .kargul-nav-item.active svg {
@@ -239,8 +342,8 @@ html, body {
   min-width: 22px;
   padding: 0 6px;
   border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-  background-color: #f1f5f9;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
   color: var(--chip);
   font-size: 11px;
   font-weight: 500;
@@ -252,7 +355,7 @@ html, body {
 .kargul-sidebar-footer {
   padding: 12px 14px;
   border-top: 1px solid var(--sidebar-border);
-  background-color: #ffffff;
+  background-color: var(--sidebar-accent);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -268,6 +371,7 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   background-color: var(--background);
+  transition: background-color 0.2s ease;
 }
 
 /* Topbar Header */
@@ -279,8 +383,9 @@ html, body {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  background-color: #ffffff;
+  background-color: var(--card);
   z-index: 10;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .kargul-topbar-left {
@@ -303,10 +408,10 @@ html, body {
   gap: 5px;
   padding: 3px 8px 3px 6px;
   border-radius: 9999px;
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
   font-size: 11px;
-  color: #475467;
+  color: var(--soft);
   font-weight: 500;
 }
 
@@ -341,23 +446,23 @@ html, body {
   text-decoration: none;
   transition: all 0.15s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--kargul-bevel-shadow);
 }
 
 .kargul-btn-secondary {
-  background-color: #ffffff;
-  color: #334155;
-  border-color: #e2e8f0;
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--border);
 }
 
 .kargul-btn-secondary:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--muted);
+  color: var(--foreground);
 }
 
 .kargul-btn-primary {
   background-color: var(--primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
   border-color: var(--primary);
 }
 
@@ -372,6 +477,69 @@ html, body {
   border-radius: 50%;
 }
 
+/* Theme Mode Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  outline: none;
+  box-shadow: var(--kargul-bevel-shadow);
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(0);
+}
+
+.theme-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover svg {
+  transform: rotate(15deg);
+}
+
+/* Light Theme shows Moon icon to switch to dark */
+:root .theme-toggle-btn .theme-icon-light,
+[data-theme="light"] .theme-toggle-btn .theme-icon-light {
+  display: none !important;
+}
+
+:root .theme-toggle-btn .theme-icon-dark,
+[data-theme="light"] .theme-toggle-btn .theme-icon-dark {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dark Theme shows Sun icon to switch to light */
+[data-theme="dark"] .theme-toggle-btn .theme-icon-light {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .theme-toggle-btn .theme-icon-dark {
+  display: none !important;
+}
+
 .kargul-user-pill {
   display: inline-flex;
   align-items: center;
@@ -379,12 +547,12 @@ html, body {
   height: 30px;
   padding: 0 10px 0 5px;
   border-radius: 9999px;
-  background-color: #ffffff;
+  background-color: var(--secondary);
   color: var(--foreground);
   font-size: 12px;
   font-weight: 500;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  border: 1px solid var(--border);
+  box-shadow: var(--kargul-bevel-shadow);
   cursor: pointer;
 }
 
@@ -392,8 +560,9 @@ html, body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: #e2e8f0;
-  color: #334155;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -408,7 +577,7 @@ html, body {
   gap: 16px;
   padding: 0 24px;
   border-bottom: 1px solid var(--border);
-  background-color: #ffffff;
+  background-color: var(--card);
   flex-shrink: 0;
 }
 
@@ -447,11 +616,11 @@ html, body {
 .kargul-segmented {
   display: inline-flex;
   align-items: center;
-  background-color: #ffffff;
+  background-color: var(--card);
   border-radius: 9999px;
   height: 30px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  border: 1px solid var(--border);
+  box-shadow: var(--kargul-bevel-shadow);
   overflow: hidden;
   font-size: 12px;
   cursor: pointer;
@@ -467,7 +636,7 @@ html, body {
 .kargul-segmented-divider {
   width: 1px;
   height: 100%;
-  background-color: #e2e8f0;
+  background-color: var(--border);
 }
 
 .kargul-segmented-value {
@@ -482,7 +651,7 @@ html, body {
 .kargul-segmented-value svg {
   width: 12px;
   height: 12px;
-  color: #64748b;
+  color: var(--subtle);
 }
 
 /* Content Pane Scroll Area */
@@ -514,20 +683,19 @@ html, body {
 }
 
 .kargul-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  box-shadow: var(--card-shadow);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .kargul-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06);
+  border-color: var(--line-strong);
 }
 
 .kargul-card-header {
@@ -577,11 +745,11 @@ html, body {
 
 /* Data Table Styles */
 .kargul-table-container {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow-x: auto;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  box-shadow: var(--card-shadow);
 }
 
 .kargul-table {
@@ -594,20 +762,20 @@ html, body {
 .kargul-table thead th {
   height: 38px;
   padding: 0 14px;
-  color: #64748b;
+  color: var(--subtle);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--table-head-bg);
   white-space: nowrap;
 }
 
 .kargul-table tbody tr {
   height: 42px;
-  border-bottom: 1px solid #f1f5f9;
-  background-color: #ffffff;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--table-row-bg);
   transition: background-color 0.12s ease;
 }
 
@@ -616,13 +784,13 @@ html, body {
 }
 
 .kargul-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--table-hover-bg);
 }
 
 .kargul-table td {
   padding: 8px 14px;
   vertical-align: middle;
-  color: #334155;
+  color: var(--chip);
   white-space: nowrap;
 }
 
@@ -690,7 +858,7 @@ html, body {
 .kargul-progress-bar {
   width: 70px;
   height: 5px;
-  background-color: #e2e8f0;
+  background-color: var(--track);
   border-radius: 9999px;
   overflow: hidden;
   display: inline-block;
@@ -711,8 +879,8 @@ html, body {
 .kargul-input {
   width: 100%;
   height: 36px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
+  background-color: var(--input);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   padding: 0 10px;
   color: var(--foreground);
@@ -723,13 +891,13 @@ html, body {
 
 .kargul-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
 }
 
 .kargul-label {
   font-size: 12px;
   font-weight: 600;
-  color: #475467;
+  color: var(--soft);
   margin-bottom: 5px;
   display: block;
 }

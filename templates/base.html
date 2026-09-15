@@ -5,6 +5,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}CommsOS{% endblock %}</title>
+  <script>
+    (function() {
+      try {
+        var stored = localStorage.getItem('commsos-theme');
+        if (stored === 'dark' || stored === 'light') {
+          document.documentElement.setAttribute('data-theme', stored);
+        } else {
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        }
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="stylesheet" href="{% static 'css/kargul_theme.css' %}">
   <script defer src="{% static 'js/htmx.min.js' %}"></script>
@@ -163,13 +178,19 @@
         <button type="button" class="kargul-btn kargul-btn-secondary" style="height: 32px; padding: 0 10px; gap: 8px; color: var(--subtle);" onclick="const s = prompt('Quick find campaigns, deliverables, media contacts:'); if(s) window.location.href='{% url 'campaigns_list' %}?q=' + encodeURIComponent(s);">
           {% lucide "search" %}
           <span style="font-size: 11.5px; color: var(--soft);">Search CommsOS...</span>
-          <kbd style="font-size: 9.5px; font-family: inherit; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 1px 4px; color: var(--subtle);">⌘K</kbd>
+          <kbd style="font-size: 9.5px; font-family: inherit; background: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; color: var(--subtle);">⌘K</kbd>
         </button>
 
         <!-- Notification Bell Pill -->
         <button type="button" class="kargul-btn kargul-btn-secondary kargul-btn-icon" style="position: relative;" aria-label="Notifications">
           {% lucide "bell" %}
-          <span style="position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px #ffffff;"></span>
+          <span style="position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--card);"></span>
+        </button>
+
+        <!-- Theme Mode Toggle (System-Aware & User-Toggleable) -->
+        <button id="commsos-theme-toggle" type="button" class="theme-toggle-btn" aria-label="Toggle theme" title="Toggle theme" onclick="toggleCommsOSTheme()">
+          <span class="theme-icon-light" aria-hidden="true">{% lucide "sun" %}</span>
+          <span class="theme-icon-dark" aria-hidden="true">{% lucide "moon" %}</span>
         </button>
 
         <!-- User Profile Pill -->
@@ -189,7 +210,7 @@
       {% if messages %}
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
           {% for message in messages %}
-            <div style="background: #ffffff; border: 1px solid {% if message.tags == 'error' %}var(--danger){% else %}var(--status){% endif %}; border-left-width: 4px; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--foreground); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(16,24,40,0.05);">
+            <div style="background: var(--card); border: 1px solid {% if message.tags == 'error' %}var(--danger){% else %}var(--status){% endif %}; border-left-width: 4px; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--foreground); display: flex; align-items: center; justify-content: space-between; box-shadow: var(--card-shadow);">
               <span>{{ message }}</span>
             </div>
           {% endfor %}
@@ -205,5 +226,55 @@
   {% block auth_content %}{% endblock %}
 </main>
 {% endif %}
+
+<script>
+  function toggleCommsOSTheme() {
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    var nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    try {
+      localStorage.setItem('commsos-theme', nextTheme);
+    } catch (e) {}
+    updateThemeToggleUI(nextTheme);
+  }
+
+  function updateThemeToggleUI(theme) {
+    var btn = document.getElementById('commsos-theme-toggle');
+    if (!btn) return;
+    if (theme === 'dark') {
+      btn.setAttribute('title', 'Switch to Light Mode (Currently Dark)');
+      btn.setAttribute('aria-label', 'Switch to Light Mode');
+    } else {
+      btn.setAttribute('title', 'Switch to Dark Mode (Currently Light)');
+      btn.setAttribute('aria-label', 'Switch to Dark Mode');
+    }
+  }
+
+  (function() {
+    var activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    updateThemeToggleUI(activeTheme);
+
+    // Watch for system OS theme changes dynamically if user hasn't explicitly overridden it in localStorage
+    if (window.matchMedia) {
+      var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function(e) {
+        var stored = null;
+        try {
+          stored = localStorage.getItem('commsos-theme');
+        } catch(err) {}
+        if (!stored) {
+          var sysTheme = e.matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', sysTheme);
+          updateThemeToggleUI(sysTheme);
+        }
+      };
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handler);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handler);
+      }
+    }
+  })();
+</script>
 </body>
 </html>
