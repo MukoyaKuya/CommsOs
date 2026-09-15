@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 db.sqlite3
 node_modules/
+.worktrees/
 staticfiles/
 .pytest_cache/
 .ruff_cache/
