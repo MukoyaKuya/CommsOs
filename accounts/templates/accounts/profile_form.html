@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block page_title %}Edit staff profile{% endblock %}{% block content %}<h2>{{ target.user.get_full_name|default:target.user.username }}</h2><form method="post" class="kargul-card" style="padding:16px;max-width:640px">{% csrf_token %}{{ form.as_p }}<button class="kargul-btn kargul-btn-primary">Save profile</button></form>{% endblock %}

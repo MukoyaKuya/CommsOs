@@ -102,7 +102,7 @@
       <!-- Workspace Management Section -->
       <div class="kargul-nav-section">
         <span class="kargul-eyebrow">Workspace</span>
-        <a href="#" class="kargul-nav-item">
+        <a href="{% url 'team_directory' %}" class="kargul-nav-item">
           {% lucide "users" %}
           <span>Team Directory</span>
         </a>
@@ -118,7 +118,7 @@
 
       <!-- System Utilities -->
       <div class="kargul-nav-section" style="border-bottom: none;">
-        <a href="#" class="kargul-nav-item">
+        <a href="{% url 'invitation_create' %}" class="kargul-nav-item">
           {% lucide "user-plus" %}
           <span>Invite teammates</span>
         </a>

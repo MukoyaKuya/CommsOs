@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Accept invitation · CommsOS{% endblock %}{% block auth_content %}<div class="auth-card" style="max-width:480px;padding:24px"><h1>Join CommsOS</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button">Create account</button></form></div>{% endblock %}
