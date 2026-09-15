@@ -964,29 +964,228 @@ html, body {
   background-color: var(--status);
 }
 
-/* Input Fields inside Modals/Forms */
-.kargul-input {
+/* Input Fields inside Modals/Forms & Platform-wide Forms */
+.kargul-input,
+.kargul-textarea,
+.kargul-select,
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+textarea,
+select,
+.form-field input,
+.form-field textarea,
+.form-field select,
+.jira-input,
+.jira-textarea,
+.jira-select {
   width: 100%;
-  height: 36px;
-  background-color: var(--input);
-  border: 1px solid var(--input-border);
-  border-radius: 6px;
-  padding: 0 10px;
-  color: var(--foreground);
-  font-size: 13px;
+  background-color: var(--input) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 7px;
+  color: var(--foreground) !important;
+  font-size: 13.5px;
+  font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
-.kargul-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2);
+.kargul-input,
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+select,
+.form-field input,
+.form-field select,
+.jira-input,
+.jira-select {
+  height: 38px;
+  padding: 0 12px;
 }
 
-.kargul-label {
+.kargul-textarea,
+textarea,
+.form-field textarea,
+.jira-textarea {
+  min-height: 90px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder,
+.form-field input::placeholder,
+.form-field textarea::placeholder,
+.jira-input::placeholder,
+.jira-textarea::placeholder {
+  color: var(--subtle) !important;
+  opacity: 0.75;
+}
+
+.kargul-input:focus,
+.kargul-textarea:focus,
+.kargul-select:focus,
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus,
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus,
+.jira-input:focus,
+.jira-textarea:focus,
+.jira-select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.22) !important;
+}
+
+/* Native date picker color scheme */
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark;
+}
+[data-theme="light"] input[type="date"] {
+  color-scheme: light;
+}
+
+.kargul-label,
+.jira-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--soft);
-  margin-bottom: 5px;
+  color: var(--soft) !important;
+  margin-bottom: 6px;
   display: block;
+  letter-spacing: -0.01em;
 }
+
+.kargul-field-hint,
+.jira-hint {
+  font-size: 11.5px;
+  color: var(--subtle) !important;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.form-error {
+  font-size: 11.5px;
+  color: var(--danger) !important;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Fallback overrides for legacy Jira elements across all templates */
+.jira-panel {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+.jira-panel-head {
+  background-color: var(--card-subtle) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  padding: 12px 18px !important;
+  border-top-left-radius: 10px !important;
+  border-top-right-radius: 10px !important;
+}
+
+.jira-panel-body {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  padding: 18px 20px !important;
+}
+
+.jira-h1,
+.jira-h2,
+.section-title {
+  color: var(--foreground) !important;
+}
+
+.jira-crumb,
+.jira-muted {
+  color: var(--subtle) !important;
+}
+
+.jira-crumb a {
+  color: var(--subtle) !important;
+  text-decoration: none;
+}
+
+.jira-crumb a:hover {
+  color: var(--foreground) !important;
+  text-decoration: underline;
+}
+
+.jira-flag {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: 8px !important;
+}
+
+.jira-flag-error {
+  border-left: 4px solid var(--danger) !important;
+}
+
+.jira-flag-success {
+  border-left: 4px solid var(--status) !important;
+}
+
+.button {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 1px solid var(--primary) !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  padding: 0 16px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: var(--kargul-bevel-shadow) !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+}
+
+.button:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+.btn-default {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 9999px !important;
+  font-weight: 500 !important;
+  padding: 0 14px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: var(--kargul-bevel-shadow) !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+}
+
+.btn-default:hover {
+  background-color: var(--muted) !important;
+  color: var(--foreground) !important;
+}
+

@@ -293,6 +293,34 @@ class CampaignFlowTests(TestCase):
         self.assertContains(response, self.campaign.name)
         self.assertNotContains(response, "Secret Two")
 
+    def test_campaigns_list_uses_planning_tab_contract(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("campaigns_list"), {"tab": "planning"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.campaign.name)
+        self.assertContains(response, 'href="?tab=planning')
+        self.assertContains(response, 'aria-current="page"')
+
+    def test_campaigns_list_board_groups_campaigns(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("campaigns_list"), {"view": "board"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Campaign board"')
+        self.assertContains(response, self.campaign.name)
+        self.assertNotContains(response, 'class="kargul-table"')
+
+    def test_campaigns_list_preserves_search_filter_value(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("campaigns_list"), {"q": "Safety"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="q" value="Safety"')
+
     def test_calendar_view_renders_for_authorized_user(self):
         from core.models import CalendarEvent
         CalendarEvent.objects.create(
@@ -327,5 +355,4 @@ class CampaignFlowTests(TestCase):
         other_res = self.client.get(reverse("calendar_view"))
         self.assertEqual(other_res.status_code, 200)
         self.assertNotContains(other_res, "Strategy Sync")
-
 

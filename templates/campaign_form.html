@@ -1,33 +1,423 @@
 {% extends 'base.html' %}
+{% load lucide %}
+
+{% block title %}{% if campaign %}Edit CMP-{{ campaign.plan_revision }} · {{ campaign.name }}{% else %}New Campaign Brief{% endif %} — CommsOS{% endblock %}
+{% block page_title %}{% if campaign %}Edit Campaign{% else %}Create Campaign{% endif %}{% endblock %}
+
 {% block content %}
-<nav class="jira-crumb mb-1" aria-label="Breadcrumb"><a href="{% url 'dashboard' %}" class="hover:underline">Campaigns</a> / {% if campaign %}CMP-{{ campaign.plan_revision }} · Edit{% else %}Create{% endif %}</nav>
-<h1 class="jira-h1 mb-4">{% if campaign %}Edit campaign brief{% else %}Create campaign{% endif %}</h1>
-<div class="grid lg:grid-cols-3 gap-4 items-start">
-  <form method="post" class="jira-panel lg:col-span-2">
-    <div class="jira-panel-head"><span class="jira-h2">Issue details</span><span class="lozenge lozenge-todo">Brief</span></div>
-    <div class="jira-panel-body">
+<div style="max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+
+  <!-- Breadcrumb & Action Bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <nav aria-label="Breadcrumb" style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle);">
+        <a href="{% url 'campaigns_list' %}" style="color: var(--subtle); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--subtle)'">
+          {% lucide "megaphone" %}
+          <span>Campaigns</span>
+        </a>
+        <span style="color: var(--faint);">/</span>
+        <span style="color: var(--foreground);">
+          {% if campaign %}CMP-{{ campaign.plan_revision }} · Edit{% else %}Create Brief{% endif %}
+        </span>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h1 style="font-size: 22px; font-weight: 700; color: var(--foreground); letter-spacing: -0.02em; margin: 0;">
+          {% if campaign %}Edit campaign brief{% else %}Create new campaign brief{% endif %}
+        </h1>
+        <span class="kargul-badge kargul-badge-orange">
+          {% if campaign %}CMP-{{ campaign.plan_revision }}{% else %}Draft Brief{% endif %}
+        </span>
+      </div>
+      <p style="font-size: 12.5px; color: var(--subtle); margin: 0;">
+        Define strategic objectives, target audience, schedule, and distribution channels for AI strategy generation.
+      </p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <a href="{% if campaign %}{% url 'campaign_detail' campaign.pk %}{% else %}{% url 'campaigns_list' %}{% endif %}" class="kargul-btn kargul-btn-secondary">
+        Cancel
+      </a>
+      <button type="submit" form="campaign-form" class="kargul-btn kargul-btn-primary">
+        {% lucide "check" %}
+        <span>{% if campaign %}Save brief changes{% else %}Create campaign brief{% endif %}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Layout Grid (2 Columns: Form + Guidance Panel) -->
+  <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(310px, 1fr); gap: 24px; align-items: start;">
+
+    <!-- Left Main Form Container -->
+    <form id="campaign-form" method="post" style="display: flex; flex-direction: column; gap: 18px;">
       {% csrf_token %}
-      {% for error in form.non_field_errors %}<div class="jira-flag jira-flag-error mb-3"><span class="dot mt-1.5 bg-[#c9372c]"></span><p>{{ error }}</p></div>{% endfor %}
-      {% for field in form %}
-      <div class="jira-field">
-        <label for="{{ field.id_for_label }}" class="jira-label">{{ field.label }}</label>
-        <div class="form-field">{{ field }}</div>
-        {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+      {% if form.non_field_errors %}
+        <div style="background: var(--card); border: 1px solid var(--danger); border-left-width: 4px; border-radius: 8px; padding: 12px 16px; color: var(--foreground); box-shadow: var(--card-shadow);">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: var(--danger); margin-bottom: 4px;">
+            {% lucide "flag" %}
+            <span>Please correct the following errors:</span>
+          </div>
+          {% for error in form.non_field_errors %}
+            <p style="margin: 0; font-size: 12.5px; color: var(--foreground);">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Section 1: Campaign Identity -->
+      <div class="kargul-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--tag-orange-bg); border: 1px solid var(--tag-orange-border); display: flex; align-items: center; justify-content: center; color: var(--tag-orange-text);">
+              {% lucide "megaphone" %}
+            </div>
+            <div>
+              <h2 style="font-size: 13.5px; font-weight: 700; color: var(--foreground); margin: 0;">Campaign Identity & Core Issue</h2>
+              <span style="font-size: 11.5px; color: var(--subtle);">Foundational campaign title and the strategic catalyst behind it.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Name Field -->
+          <div>
+            <label for="{{ form.name.id_for_label }}" class="kargul-label">
+              Campaign Name <span style="color: var(--primary);">*</span>
+            </label>
+            <div class="form-field">
+              {{ form.name }}
+            </div>
+            {% for error in form.name.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">A clear, distinctive name representing this strategic initiative across the organization.</div>
+          </div>
+
+          <!-- Issue / Catalyst Field -->
+          <div>
+            <label for="{{ form.issue.id_for_label }}" class="kargul-label">
+              Strategic Issue or Catalyst
+            </label>
+            <div class="form-field">
+              {{ form.issue }}
+            </div>
+            {% for error in form.issue.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">The primary market development, product milestone, crisis, or corporate event being addressed.</div>
+          </div>
+        </div>
       </div>
-      {% endfor %}
-      <div class="flex gap-2 mt-4">
-        <button class="button">Save campaign</button>
-        <a href="{% url 'dashboard' %}" class="btn-default">Cancel</a>
+
+      <!-- Section 2: Strategy Goals & Target Stakeholders -->
+      <div class="kargul-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--tag-blue-bg); border: 1px solid var(--tag-blue-border); display: flex; align-items: center; justify-content: center; color: var(--tag-blue-text);">
+              {% lucide "check-square" %}
+            </div>
+            <div>
+              <h2 style="font-size: 13.5px; font-weight: 700; color: var(--foreground); margin: 0;">Objectives & Target Audience</h2>
+              <span style="font-size: 11.5px; color: var(--subtle);">Measurable targets and key stakeholder segments.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <!-- Objective Field -->
+          <div>
+            <label for="{{ form.objective.id_for_label }}" class="kargul-label">
+              Primary Objective <span style="color: var(--primary);">*</span>
+            </label>
+            <div class="form-field">
+              {{ form.objective }}
+            </div>
+            {% for error in form.objective.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">What concrete communication goal must this campaign achieve?</div>
+          </div>
+
+          <!-- Audience Field -->
+          <div>
+            <label for="{{ form.audience.id_for_label }}" class="kargul-label">
+              Target Audience <span style="color: var(--primary);">*</span>
+            </label>
+            <div class="form-field">
+              {{ form.audience }}
+            </div>
+            {% for error in form.audience.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">Key external and internal stakeholder groups, press tiers, or demographic targets.</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </form>
-  <aside class="jira-panel">
-    <div class="jira-panel-head"><span class="jira-h2">Guidance</span></div>
-    <div class="jira-panel-body jira-muted space-y-2">
-      <p>End date must be on or after start date.</p>
-      <p>Strategy generation needs name, objective, audience, dates, and at least one channel.</p>
-      <p>Organization is taken from your membership — never from form input.</p>
-    </div>
-  </aside>
+
+      <!-- Section 3: Tone, Geography & Desired Outcome -->
+      <div class="kargul-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--tag-purple-bg); border: 1px solid var(--tag-purple-border); display: flex; align-items: center; justify-content: center; color: var(--tag-purple-text);">
+              {% lucide "sparkles" %}
+            </div>
+            <div>
+              <h2 style="font-size: 13.5px; font-weight: 700; color: var(--foreground); margin: 0;">Tone, Geography & Desired Outcome</h2>
+              <span style="font-size: 11.5px; color: var(--subtle);">Voice resonance, regional scope, and definition of success.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <!-- Geographic Focus -->
+          <div>
+            <label for="{{ form.geographic_focus.id_for_label }}" class="kargul-label">
+              Geographic Focus
+            </label>
+            <div class="form-field">
+              {{ form.geographic_focus }}
+            </div>
+            {% for error in form.geographic_focus.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">e.g., Global, North America, EMEA, APAC.</div>
+          </div>
+
+          <!-- Tone Field -->
+          <div>
+            <label for="{{ form.tone.id_for_label }}" class="kargul-label">
+              Voice & Tone
+            </label>
+            <div class="form-field">
+              {{ form.tone }}
+            </div>
+            {% for error in form.tone.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">e.g., Authoritative, Visionary, Reassuring, Urgent.</div>
+          </div>
+        </div>
+
+        <!-- Desired Outcome -->
+        <div>
+          <label for="{{ form.desired_outcome.id_for_label }}" class="kargul-label">
+            Desired Outcome
+          </label>
+          <div class="form-field">
+            {{ form.desired_outcome }}
+          </div>
+          {% for error in form.desired_outcome.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          <div class="kargul-field-hint">Concrete business impact, media coverage threshold, or shift in sentiment.</div>
+        </div>
+      </div>
+
+      <!-- Section 4: Distribution Channels & Schedule -->
+      <div class="kargul-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--tag-green-bg); border: 1px solid var(--tag-green-border); display: flex; align-items: center; justify-content: center; color: var(--tag-green-text);">
+              {% lucide "calendar" %}
+            </div>
+            <div>
+              <h2 style="font-size: 13.5px; font-weight: 700; color: var(--foreground); margin: 0;">Channels & Campaign Schedule</h2>
+              <span style="font-size: 11.5px; color: var(--subtle);">Execution channels and active timeline dates.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Channels Field with Interactive Helper Badges -->
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <label for="{{ form.channels.id_for_label }}" class="kargul-label" style="margin-bottom: 0;">
+              Distribution Channels <span style="color: var(--primary);">*</span>
+            </label>
+            <span style="font-size: 11px; color: var(--subtle);">Click pill to append</span>
+          </div>
+
+          <div class="form-field">
+            {{ form.channels }}
+          </div>
+          {% for error in form.channels.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+
+          <!-- Channel Quick Presets -->
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+            <button type="button" class="kargul-badge kargul-badge-amber" style="cursor: pointer;" onclick="appendChannel('Press & Media')">
+              + Press & Media
+            </button>
+            <button type="button" class="kargul-badge kargul-badge-purple" style="cursor: pointer;" onclick="appendChannel('Social & Digital')">
+              + Social & Digital
+            </button>
+            <button type="button" class="kargul-badge kargul-badge-blue" style="cursor: pointer;" onclick="appendChannel('Internal Comms')">
+              + Internal Comms
+            </button>
+            <button type="button" class="kargul-badge kargul-badge-green" style="cursor: pointer;" onclick="appendChannel('Investor Relations')">
+              + Investor Relations
+            </button>
+            <button type="button" class="kargul-badge kargul-badge-neutral" style="cursor: pointer;" onclick="appendChannel('Executive Keynotes')">
+              + Executive Keynotes
+            </button>
+          </div>
+          <div class="kargul-field-hint">Specify channels (comma separated) across which strategy and deliverables will be orchestrated.</div>
+        </div>
+
+        <!-- Start Date & End Date Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <!-- Starts On -->
+          <div>
+            <label for="{{ form.starts_on.id_for_label }}" class="kargul-label">
+              Start / Launch Date <span style="color: var(--primary);">*</span>
+            </label>
+            <div class="form-field">
+              {{ form.starts_on }}
+            </div>
+            {% for error in form.starts_on.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">Target kickoff or press distribution date.</div>
+          </div>
+
+          <!-- Ends On -->
+          <div>
+            <label for="{{ form.ends_on.id_for_label }}" class="kargul-label">
+              End / Review Date <span style="color: var(--primary);">*</span>
+            </label>
+            <div class="form-field">
+              {{ form.ends_on }}
+            </div>
+            {% for error in form.ends_on.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <div class="kargul-field-hint">Must be on or after the start date.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Supplementary Context -->
+      <div class="kargul-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--tag-neutral-bg); border: 1px solid var(--tag-neutral-border); display: flex; align-items: center; justify-content: center; color: var(--tag-neutral-text);">
+              {% lucide "file-text" %}
+            </div>
+            <div>
+              <h2 style="font-size: 13.5px; font-weight: 700; color: var(--foreground); margin: 0;">Supplementary Context & Notes</h2>
+              <span style="font-size: 11.5px; color: var(--subtle);">Spokesperson constraints, embargo agreements, or reference materials.</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="{{ form.context.id_for_label }}" class="kargul-label">
+            Context & Background Notes
+          </label>
+          <div class="form-field">
+            {{ form.context }}
+          </div>
+          {% for error in form.context.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+          <div class="kargul-field-hint">Optional context provided directly into the CommsOS AI Strategy Generator prompt.</div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="kargul-card" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--card-subtle);">
+        <a href="{% if campaign %}{% url 'campaign_detail' campaign.pk %}{% else %}{% url 'campaigns_list' %}{% endif %}" class="kargul-btn kargul-btn-secondary">
+          Cancel
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 11.5px; color: var(--subtle);">All changes are validated & logged</span>
+          <button type="submit" class="kargul-btn kargul-btn-primary" style="height: 34px; padding: 0 16px;">
+            {% lucide "check" %}
+            <span>{% if campaign %}Save brief changes{% else %}Create campaign brief{% endif %}</span>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Right Guidance & Readiness Column -->
+    <aside style="display: flex; flex-direction: column; gap: 18px;">
+
+      <!-- Strategic Signal Card -->
+      <div class="kargul-signal-card">
+        <div class="kargul-signal-badge">
+          {% lucide "sparkles" %}
+          <span>AI Strategy Ready</span>
+        </div>
+        <div class="kargul-signal-title">Autonomous Comms Synthesis</div>
+        <p class="kargul-signal-body">
+          Completing this brief unlocks the CommsOS Strategy Engine to generate press releases, stakeholder narratives, and calendar timelines.
+        </p>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(194, 65, 12, 0.2);">
+          <span class="kargul-signal-subheading">Required for generation:</span>
+          <div class="kargul-signal-item">• Name, Objective, Target Audience</div>
+          <div class="kargul-signal-item">• Start & End Dates</div>
+          <div class="kargul-signal-item">• At least one Distribution Channel</div>
+        </div>
+      </div>
+
+      <!-- Quality & Governance Guidance Card -->
+      <div class="kargul-card" style="padding: 18px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--foreground);">
+          {% lucide "circle-help" %}
+          <span>Quality & Compliance</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px; color: var(--subtle); line-height: 1.5;">
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--status); font-weight: 700;">1.</span>
+            <div>
+              <strong style="color: var(--foreground); display: block;">Timeline Consistency</strong>
+              Target end date must be on or after the start date to maintain valid analytics and calendar projection.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--status); font-weight: 700;">2.</span>
+            <div>
+              <strong style="color: var(--foreground); display: block;">Tenant Isolation</strong>
+              This campaign will be cryptographically isolated to <strong>{{ membership.organization.name|default:'your organization' }}</strong>.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--status); font-weight: 700;">3.</span>
+            <div>
+              <strong style="color: var(--foreground); display: block;">Revision History</strong>
+              Every update creates an immutable revision log with full rollback support in the campaign audit trail.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Workflow Path -->
+      <div class="kargul-card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+        <span class="kargul-card-title">Campaign Lifecycle</span>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+            <span style="color: var(--foreground); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--primary);"></span>
+              1. Brief Specification
+            </span>
+            <span class="kargul-badge kargul-badge-orange" style="font-size: 10px; padding: 1px 6px;">Current</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; opacity: 0.7;">
+            <span style="color: var(--subtle); display: flex; align-items: center; gap: 6px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong);"></span>
+              2. AI Strategy Proposal
+            </span>
+            <span style="font-size: 11px; color: var(--subtle);">Next</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; opacity: 0.7;">
+            <span style="color: var(--subtle); display: flex; align-items: center; gap: 6px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong);"></span>
+              3. Deliverables & Schedule
+            </span>
+            <span style="font-size: 11px; color: var(--subtle);">Upcoming</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
 </div>
+
+<script>
+  function appendChannel(channelName) {
+    var input = document.getElementById('{{ form.channels.id_for_label }}');
+    if (!input) return;
+    var current = input.value.trim();
+    if (!current) {
+      input.value = channelName;
+    } else {
+      var channels = current.split(',').map(function(c) { return c.trim(); }).filter(Boolean);
+      if (channels.indexOf(channelName) === -1) {
+        channels.push(channelName);
+        input.value = channels.join(', ');
+      }
+    }
+    input.focus();
+  }
+</script>
 {% endblock %}
