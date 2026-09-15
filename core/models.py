@@ -156,3 +156,37 @@ class AuditEvent(Stamp):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     action = models.CharField(max_length=80)
     details = models.JSONField(default=dict)
+
+
+class CalendarEvent(Stamp):
+    class EventType(models.TextChoices):
+        MY_CALENDAR = "my_calendar", "My calendar"
+        CAMPAIGNS = "campaigns", "Campaigns"
+        CONTENT = "content", "Content"
+        TEAM = "team", "Team"
+        EXTERNAL = "external", "External"
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="calendar_events"
+    )
+    campaign = models.ForeignKey(
+        Campaign, null=True, blank=True, on_delete=models.CASCADE, related_name="calendar_events"
+    )
+    title = models.CharField(max_length=200)
+    event_type = models.CharField(
+        max_length=20, choices=EventType.choices, default=EventType.MY_CALENDAR
+    )
+    date = models.DateField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    is_all_day = models.BooleanField(default=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        ordering = ["date", "start_time"]
+
+    def __str__(self):
+        return f"{self.title} ({self.date})"
+

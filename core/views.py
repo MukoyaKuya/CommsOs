@@ -1,3 +1,5 @@
+import calendar
+from datetime import datetime, date, time, timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -15,9 +17,9 @@ from .models import (
     Insight,
     Recommendation,
     Task,
-    ContentItem,
     Observation,
     AuditEvent,
+    CalendarEvent,
 )
 from .selectors import membership_for, campaign_for, can_manage
 from . import services
@@ -697,5 +699,366 @@ def campaign_summary(request, pk):
     campaign = campaign_for(request.user, pk)
     evidence, _ = evidence_for(campaign)
     return render(request, "partials/summary.html", {"campaign": campaign, "evidence": evidence})
+
+
+@login_required
+def calendar_view(request):
+    membership = membership_for(request.user)
+    if not membership:
+        return render(
+            request,
+            "calendar.html",
+            {
+                "membership": None,
+                "week_days": [],
+                "hours": [],
+                "all_day_events": [],
+                "day_columns": [],
+                "mini_calendar": {},
+                "upcoming_events": [],
+                "date_range_label": "",
+                "view_mode": "week",
+            },
+        )
+
+    organization = membership.organization
+    today = timezone.localdate()
+
+    # Target date parsing
+    date_param = request.GET.get("date", "").strip()
+    try:
+        target_date = datetime.strptime(date_param, "%Y-%m-%d").date() if date_param else today
+    except (ValueError, TypeError):
+        target_date = today
+
+    view_mode = request.GET.get("view", "week").lower()
+    if view_mode not in ("week", "month", "list", "timeline"):
+        view_mode = "week"
+
+    # Category filters
+    active_types = request.GET.getlist("type")
+    if not active_types:
+        active_types = ["my_calendar", "campaigns", "content", "team", "external"]
+
+    # Calculate Week window (Monday to Sunday)
+    start_of_week = target_date - timedelta(days=target_date.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    prev_week_date = (start_of_week - timedelta(days=7)).strftime("%Y-%m-%d")
+    next_week_date = (start_of_week + timedelta(days=7)).strftime("%Y-%m-%d")
+    today_date_str = today.strftime("%Y-%m-%d")
+
+    date_range_label = f"{start_of_week.strftime('%b %d')} – {end_of_week.strftime('%b %d, %Y')}"
+
+    # Days list
+    week_days = []
+    for i in range(7):
+        d = start_of_week + timedelta(days=i)
+        week_days.append({
+            "date": d,
+            "date_str": d.strftime("%Y-%m-%d"),
+            "day_name": d.strftime("%a"),
+            "day_num": d.day,
+            "month_name": d.strftime("%b"),
+            "is_today": (d == today),
+            "is_selected": (d == target_date),
+            "col_index": i,
+        })
+
+    # Hours list (8 AM to 5 PM)
+    hours = [
+        {"val": 8, "label": "8 AM"},
+        {"val": 9, "label": "9 AM"},
+        {"val": 10, "label": "10 AM"},
+        {"val": 11, "label": "11 AM"},
+        {"val": 12, "label": "12 PM"},
+        {"val": 13, "label": "1 PM"},
+        {"val": 14, "label": "2 PM"},
+        {"val": 15, "label": "3 PM"},
+        {"val": 16, "label": "4 PM"},
+        {"val": 17, "label": "5 PM"},
+    ]
+
+    # Fetch organization events, tasks, content items, and campaigns
+    cal_events = list(CalendarEvent.objects.filter(
+        organization=organization,
+        date__range=(start_of_week, end_of_week),
+        event_type__in=active_types,
+    ).select_related("campaign", "created_by"))
+
+    tasks = []
+    if "campaigns" in active_types or "team" in active_types:
+        tasks = list(Task.objects.filter(
+            campaign__organization=organization,
+            due_on__range=(start_of_week, end_of_week)
+        ).select_related("campaign"))
+
+    items = []
+    if "content" in active_types:
+        items = list(ContentItem.objects.filter(
+            campaign__organization=organization,
+            planned_on__range=(start_of_week, end_of_week)
+        ).select_related("campaign"))
+
+    campaigns = []
+    if "campaigns" in active_types:
+        campaigns = list(Campaign.objects.filter(
+            organization=organization,
+            starts_on__lte=end_of_week,
+            ends_on__gte=start_of_week,
+        ))
+
+    # All-day banners
+    all_day_events = []
+    for c in campaigns:
+        all_day_events.append({
+            "title": f"{c.name} — Sprint",
+            "campaign": c,
+            "theme": "cal-banner-green",
+            "icon": "flag",
+            "starts_on": c.starts_on,
+            "ends_on": c.ends_on,
+        })
+    for ce in cal_events:
+        if ce.is_all_day:
+            all_day_events.append({
+                "title": ce.title,
+                "campaign": ce.campaign,
+                "theme": "cal-banner-purple",
+                "icon": "flag",
+                "starts_on": ce.date,
+                "ends_on": ce.date,
+            })
+
+    # Hourly Grid Events grouped by Day Column
+    day_columns = [[] for _ in range(7)]
+
+    type_theme_map = {
+        "my_calendar": {"theme": "theme-blue", "icon": "users"},
+        "campaigns": {"theme": "theme-green", "icon": "flag"},
+        "content": {"theme": "theme-rose", "icon": "file-text"},
+        "team": {"theme": "theme-purple", "icon": "chart-no-axes-combined"},
+        "external": {"theme": "theme-amber", "icon": "phone"},
+    }
+
+    # Add CalendarEvents
+    for ce in cal_events:
+        if ce.is_all_day:
+            continue
+        day_offset = (ce.date - start_of_week).days
+        if 0 <= day_offset < 7:
+            st_hour = ce.start_time.hour if ce.start_time else 9
+            st_min = ce.start_time.minute if ce.start_time else 0
+            et_hour = ce.end_time.hour if ce.end_time else (st_hour + 1)
+            et_min = ce.end_time.minute if ce.end_time else 0
+
+            time_str = f"{ce.start_time.strftime('%I:%M %p').lstrip('0')}" if ce.start_time else "All day"
+            if ce.end_time:
+                time_str += f" – {ce.end_time.strftime('%I:%M %p').lstrip('0')}"
+
+            start_decimal = max(8.0, min(17.0, st_hour + st_min / 60.0))
+            end_decimal = max(start_decimal + 0.5, min(18.0, et_hour + et_min / 60.0))
+            top_px = int((start_decimal - 8.0) * 64)
+            height_px = max(42, int((end_decimal - start_decimal) * 64) - 4)
+
+            mapping = type_theme_map.get(ce.event_type, {"theme": "theme-blue", "icon": "users"})
+
+            day_columns[day_offset].append({
+                "title": ce.title,
+                "time_label": time_str,
+                "theme_class": mapping["theme"],
+                "icon": mapping["icon"],
+                "top_px": top_px,
+                "height_px": height_px,
+                "pk": str(ce.pk),
+                "campaign_name": ce.campaign.name if ce.campaign else None,
+            })
+
+    # Add Tasks to Grid
+    for t in tasks:
+        day_offset = (t.due_on - start_of_week).days
+        if 0 <= day_offset < 7:
+            st_hour = 14
+            top_px = int((st_hour - 8.0) * 64)
+            day_columns[day_offset].append({
+                "title": f"Task: {t.title}",
+                "time_label": "Due 2:00 PM",
+                "theme_class": "theme-amber",
+                "icon": "list-checks",
+                "top_px": top_px,
+                "height_px": 54,
+                "pk": str(t.pk),
+                "campaign_name": t.campaign.name,
+            })
+
+    # Add ContentItems to Grid
+    for item in items:
+        day_offset = (item.planned_on - start_of_week).days
+        if 0 <= day_offset < 7:
+            st_hour = 11
+            top_px = int((st_hour - 8.0) * 64)
+            day_columns[day_offset].append({
+                "title": f"Publish: {item.title}",
+                "time_label": f"{item.channel} · 11:00 AM",
+                "theme_class": "theme-rose",
+                "icon": "file-text",
+                "top_px": top_px,
+                "height_px": 54,
+                "pk": str(item.pk),
+                "campaign_name": item.campaign.name,
+            })
+
+    # Mini Calendar Matrix
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = cal.monthdatescalendar(target_date.year, target_date.month)
+    mini_weeks = []
+    for week in month_days:
+        w_days = []
+        for d in week:
+            w_days.append({
+                "num": d.day,
+                "date_str": d.strftime("%Y-%m-%d"),
+                "is_current_month": (d.month == target_date.month),
+                "is_today": (d == today),
+                "is_selected": (d == target_date),
+            })
+        mini_weeks.append(w_days)
+
+    if target_date.month == 1:
+        prev_month_date = date(target_date.year - 1, 12, 1).strftime("%Y-%m-%d")
+    else:
+        prev_month_date = date(target_date.year, target_date.month - 1, 1).strftime("%Y-%m-%d")
+
+    if target_date.month == 12:
+        next_month_date = date(target_date.year + 1, 1, 1).strftime("%Y-%m-%d")
+    else:
+        next_month_date = date(target_date.year, target_date.month + 1, 1).strftime("%Y-%m-%d")
+
+    mini_calendar = {
+        "title": target_date.strftime("%B %Y"),
+        "weeks": mini_weeks,
+        "prev_month_date": prev_month_date,
+        "next_month_date": next_month_date,
+    }
+
+    # Upcoming events for the sidebar
+    upcoming_events = []
+    future_events = list(CalendarEvent.objects.filter(
+        organization=organization,
+        date__gte=today,
+    ).order_by("date", "start_time")[:8])
+
+    for ev in future_events:
+        if ev.date == today:
+            group_label = "Today"
+            dot_color = "dot-blue"
+        elif ev.date == today + timedelta(days=1):
+            group_label = "Tomorrow"
+            dot_color = "dot-blue"
+        else:
+            group_label = ev.date.strftime("%A")
+            dot_color = "dot-gray"
+
+        t_label = ev.start_time.strftime("%I:%M %p").lstrip("0") if ev.start_time else "All day"
+        upcoming_events.append({
+            "group": group_label,
+            "title": ev.title,
+            "time": t_label,
+            "dot": dot_color,
+        })
+
+    if not upcoming_events:
+        for t in Task.objects.filter(campaign__organization=organization, due_on__gte=today).order_by("due_on")[:4]:
+            grp = "Today" if t.due_on == today else ("Tomorrow" if t.due_on == today + timedelta(days=1) else t.due_on.strftime("%A"))
+            upcoming_events.append({
+                "group": grp,
+                "title": t.title,
+                "time": "Due date",
+                "dot": "dot-blue" if t.due_on == today else "dot-gray",
+            })
+
+    org_campaigns = list(Campaign.objects.filter(organization=organization).order_by("name"))
+
+    context = {
+        "membership": membership,
+        "week_days": week_days,
+        "hours": hours,
+        "all_day_events": all_day_events,
+        "day_columns": day_columns,
+        "mini_calendar": mini_calendar,
+        "upcoming_events": upcoming_events,
+        "date_range_label": date_range_label,
+        "target_date": target_date.strftime("%Y-%m-%d"),
+        "today_date": today_date_str,
+        "prev_week_date": prev_week_date,
+        "next_week_date": next_week_date,
+        "view_mode": view_mode,
+        "active_types": active_types,
+        "org_campaigns": org_campaigns,
+    }
+    return render(request, "calendar.html", context)
+
+
+@login_required
+def calendar_event_create(request):
+    membership = membership_for(request.user)
+    if not membership:
+        messages.error(request, "Organization workspace required.")
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        event_type = request.POST.get("event_type", "my_calendar").strip()
+        date_str = request.POST.get("date", "").strip()
+        start_time_str = request.POST.get("start_time", "").strip()
+        end_time_str = request.POST.get("end_time", "").strip()
+        campaign_id = request.POST.get("campaign_id", "").strip()
+        is_all_day = bool(request.POST.get("is_all_day"))
+
+        if not title:
+            messages.error(request, "Event title is required.")
+            return redirect("calendar_view")
+
+        try:
+            ev_date = datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else timezone.localdate()
+        except ValueError:
+            ev_date = timezone.localdate()
+
+        st = None
+        if start_time_str:
+            try:
+                st = datetime.strptime(start_time_str, "%H:%M").time()
+            except ValueError:
+                pass
+
+        et = None
+        if end_time_str:
+            try:
+                et = datetime.strptime(end_time_str, "%H:%M").time()
+            except ValueError:
+                pass
+
+        campaign = None
+        if campaign_id:
+            try:
+                campaign = Campaign.objects.get(pk=campaign_id, organization=membership.organization)
+            except Campaign.DoesNotExist:
+                pass
+
+        CalendarEvent.objects.create(
+            organization=membership.organization,
+            campaign=campaign,
+            title=title,
+            event_type=event_type,
+            date=ev_date,
+            start_time=st,
+            end_time=et,
+            is_all_day=is_all_day,
+            created_by=request.user,
+        )
+        messages.success(request, f"Event '{title}' scheduled.")
+        return redirect(f"/calendar/?date={ev_date.strftime('%Y-%m-%d')}")
+
+    return redirect("calendar_view")
+
 
 

@@ -1,0 +1,1021 @@
+{% extends 'base.html' %}
+{% load lucide %}
+{% block title %}Calendar — CommsOS{% endblock %}
+
+{% block content %}
+<style>
+  /* ==========================================================================
+     CommsOS Calendar Page - Pixel Perfect Design System
+     ========================================================================== */
+  .cal-page {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #101828;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 48px;
+  }
+
+  /* Breadcrumb & Header */
+  .cal-breadcrumb {
+    font-size: 12px;
+    color: #667085;
+    font-weight: 500;
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cal-breadcrumb span {
+    color: #d0d5dd;
+  }
+  .cal-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #101828;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0;
+  }
+  .cal-subtitle {
+    font-size: 13.5px;
+    color: #667085;
+    margin: 6px 0 0 0;
+  }
+
+  /* Control Bar: View Tabs + Actions */
+  .cal-control-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid #eaecf0;
+    margin-top: 24px;
+    padding-bottom: 0;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .cal-tabs {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    margin-bottom: -1px;
+  }
+  .cal-tab {
+    padding: 10px 2px 12px 2px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #667085;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .cal-tab:hover {
+    color: #101828;
+  }
+  .cal-tab.active {
+    color: #0c66e4;
+    font-weight: 600;
+    border-bottom: 2px solid #0c66e4;
+  }
+
+  .cal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .cal-btn-default {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #d0d5dd;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    color: #344054;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cal-btn-default:hover {
+    background: #f9fafb;
+    color: #101828;
+  }
+  .cal-nav-arrows {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .cal-arrow-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #667085;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .cal-arrow-btn:hover {
+    background: #f2f4f7;
+    color: #101828;
+  }
+  .cal-arrow-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .cal-date-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #101828;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px;
+  }
+  .cal-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #101828;
+    color: #ffffff;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.06);
+    transition: background 0.15s;
+  }
+  .cal-btn-primary:hover {
+    background: #1f2a37;
+    color: #ffffff;
+  }
+  .cal-btn-primary svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Two-column Layout */
+  .cal-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 24px;
+    margin-top: 20px;
+  }
+  @media (max-width: 1100px) {
+    .cal-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Main Grid Box */
+  .cal-grid-box {
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.02);
+  }
+
+  /* Day Header Row */
+  .cal-days-head {
+    display: grid;
+    grid-template-columns: 60px repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid #eaecf0;
+    background: #fafbfc;
+  }
+  .cal-head-cell {
+    padding: 14px 4px;
+    text-align: center;
+    border-right: 1px solid #eaecf0;
+  }
+  .cal-head-cell:last-child {
+    border-right: none;
+  }
+  .cal-head-corner {
+    border-right: 1px solid #eaecf0;
+  }
+  .cal-day-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #667085;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+  .cal-day-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: #101828;
+    margin: 3px 0 0 0;
+    line-height: 1.2;
+  }
+  .cal-day-num.active {
+    color: #0c66e4;
+  }
+  .cal-day-month {
+    font-size: 11px;
+    color: #98a2b3;
+    margin: 2px 0 0 0;
+  }
+  .cal-day-month.active {
+    color: #0c66e4;
+    font-weight: 600;
+  }
+
+  /* All-day Banner Row */
+  .cal-allday-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    border-bottom: 1px solid #eaecf0;
+    background: #fafbfc;
+    min-height: 40px;
+  }
+  .cal-allday-label {
+    padding: 10px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #667085;
+    text-align: right;
+    border-right: 1px solid #eaecf0;
+    align-self: center;
+  }
+  .cal-allday-content {
+    padding: 6px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .cal-banner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cal-banner-green {
+    background: #ecfdf3;
+    color: #027a48;
+    border: 1px solid #abefc6;
+  }
+  .cal-banner-purple {
+    background: #f3f0ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+  }
+  .cal-banner-pill svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Time Grid Container */
+  .cal-time-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, minmax(0, 1fr));
+    position: relative;
+    background: #ffffff;
+  }
+
+  /* Hour Column (Left) */
+  .cal-hours-col {
+    border-right: 1px solid #eaecf0;
+    background: #ffffff;
+  }
+  .cal-hour-slot-label {
+    height: 64px;
+    padding: 8px 8px 0 0;
+    font-size: 11px;
+    font-weight: 500;
+    color: #667085;
+    text-align: right;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f2f4f7;
+  }
+
+  /* Day Column Grid Area */
+  .cal-day-col {
+    position: relative;
+    border-right: 1px solid #eaecf0;
+    height: calc(10 * 64px); /* 10 hours: 8 AM to 5 PM */
+  }
+  .cal-day-col:last-child {
+    border-right: none;
+  }
+  .cal-grid-row-line {
+    height: 64px;
+    border-bottom: 1px solid #f2f4f7;
+    box-sizing: border-box;
+  }
+
+  /* Event Cards inside Grid */
+  .cal-event-card {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    border-radius: 6px;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    z-index: 10;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+  }
+  .cal-event-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16,24,40,0.08);
+    z-index: 20;
+  }
+  .cal-event-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .cal-event-head svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+  .cal-event-title {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cal-event-time {
+    font-size: 10.5px;
+    font-weight: 500;
+    margin: 3px 0 0 0;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Event Themes matching screenshot */
+  .theme-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+  .theme-green {
+    background: #ecfdf3;
+    color: #027a48;
+    border: 1px solid #abefc6;
+  }
+  .theme-rose {
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+  }
+  .theme-purple {
+    background: #f3f0ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+  }
+  .theme-amber {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .theme-gray {
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Sidebar Widgets */
+  .cal-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .cal-widget {
+    background: #ffffff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.02);
+  }
+
+  /* Mini Calendar Widget */
+  .mini-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .mini-cal-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0;
+  }
+  .mini-cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .mini-cal-nav a {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #667085;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .mini-cal-nav a:hover {
+    background: #f2f4f7;
+    color: #101828;
+  }
+  .mini-cal-nav svg {
+    width: 14px;
+    height: 14px;
+  }
+  .mini-cal-grid {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+  }
+  .mini-cal-grid th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #667085;
+    padding: 4px 0 8px 0;
+  }
+  .mini-cal-grid td {
+    padding: 2px 0;
+  }
+  .mini-cal-day {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #344054;
+    text-decoration: none;
+    transition: background 0.15s;
+    box-sizing: border-box;
+  }
+  .mini-cal-day:hover {
+    background: #f2f4f7;
+  }
+  .mini-cal-day.other-month {
+    color: #d0d5dd;
+  }
+  .mini-cal-day.active {
+    background: #0c66e4;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .mini-cal-day.today:not(.active) {
+    border: 1.5px solid #0c66e4;
+    color: #0c66e4;
+    font-weight: 600;
+  }
+
+  /* Calendars Checklist */
+  .cal-legend-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cal-legend-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0;
+  }
+  .cal-legend-add {
+    color: #667085;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px;
+  }
+  .cal-legend-add:hover {
+    color: #101828;
+  }
+  .cal-legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #344054;
+    cursor: pointer;
+  }
+  .cal-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-blue { background: #2563eb; }
+  .dot-green { background: #12b76a; }
+  .dot-purple { background: #a855f7; }
+  .dot-amber { background: #f59e0b; }
+  .dot-gray { background: #64748b; }
+
+  /* Upcoming Widget */
+  .cal-upcoming-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .cal-upcoming-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0;
+  }
+  .cal-upcoming-link {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #0c66e4;
+    text-decoration: none;
+  }
+  .cal-upcoming-link:hover {
+    text-decoration: underline;
+  }
+  .cal-timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cal-tl-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cal-tl-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #101828;
+  }
+  .cal-tl-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: #475467;
+    padding-left: 14px;
+  }
+  .cal-tl-item span:first-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
+  }
+  .cal-tl-item span:last-child {
+    color: #667085;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* Assistant Prompt Card */
+  .cal-ai-card {
+    background: #f8fafc;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .cal-ai-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #0c66e4;
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .cal-ai-head svg {
+    width: 15px;
+    height: 15px;
+  }
+  .cal-ai-text {
+    font-size: 12px;
+    color: #667085;
+    line-height: 1.4;
+    margin: 0 0 12px 0;
+  }
+  .cal-ai-btn {
+    width: 100%;
+    height: 32px;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #344054;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cal-ai-btn:hover {
+    background: #f2f4f7;
+    color: #101828;
+  }
+
+  /* Modal Styles */
+  .cal-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(16,24,40,0.5);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .cal-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  .cal-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0 0 16px 0;
+  }
+  .cal-form-group {
+    margin-bottom: 14px;
+  }
+  .cal-form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #344054;
+    margin-bottom: 6px;
+  }
+  .cal-form-input, .cal-form-select {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #101828;
+    box-sizing: border-box;
+    outline: none;
+    background: #ffffff;
+  }
+  .cal-form-input:focus, .cal-form-select:focus {
+    border-color: #0c66e4;
+    box-shadow: 0 0 0 3px rgba(12, 102, 228, 0.1);
+  }
+  .cal-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .cal-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+</style>
+
+<div class="cal-page" x-data="{ showModal: false, modalDate: '{{ target_date }}' }">
+  <!-- Breadcrumb & Title -->
+  <div>
+    <p class="cal-breadcrumb">
+      <span>Workspace</span>
+      <span>/</span>
+      <span>Calendar</span>
+    </p>
+    <h1 class="cal-title">Calendar</h1>
+    <p class="cal-subtitle">Stay aligned. From strategy to execution.</p>
+  </div>
+
+  <!-- Controls Bar: Tabs & Action Buttons -->
+  <div class="cal-control-bar">
+    <!-- View Switcher Tabs -->
+    <nav class="cal-tabs" aria-label="Calendar view tabs">
+      <a href="?view=week&date={{ target_date }}" class="cal-tab {% if view_mode == 'week' %}active{% endif %}">
+        Week
+      </a>
+      <a href="?view=month&date={{ target_date }}" class="cal-tab {% if view_mode == 'month' %}active{% endif %}">
+        Month
+      </a>
+      <a href="?view=list&date={{ target_date }}" class="cal-tab {% if view_mode == 'list' %}active{% endif %}">
+        List
+      </a>
+      <a href="?view=timeline&date={{ target_date }}" class="cal-tab {% if view_mode == 'timeline' %}active{% endif %}">
+        Timeline
+      </a>
+    </nav>
+
+    <!-- Period Navigation & Event Add Action -->
+    <div class="cal-actions">
+      <a href="?date={{ today_date }}&view={{ view_mode }}" class="cal-btn-default">
+        Today
+      </a>
+
+      <div class="cal-nav-arrows">
+        <a href="?date={{ prev_week_date }}&view={{ view_mode }}" class="cal-arrow-btn" title="Previous week">
+          {% lucide "chevron-left" %}
+        </a>
+        <a href="?date={{ next_week_date }}&view={{ view_mode }}" class="cal-arrow-btn" title="Next week">
+          {% lucide "chevron-right" %}
+        </a>
+      </div>
+
+      <div class="cal-date-label">
+        <span>{{ date_range_label }}</span>
+        {% lucide "chevron-down" %}
+      </div>
+
+      <button type="button" class="cal-btn-primary" @click="showModal = true">
+        {% lucide "plus" %}
+        <span>Add event</span>
+        {% lucide "chevron-down" %}
+      </button>
+    </div>
+  </div>
+
+  <!-- Main 2-Column Calendar Content -->
+  <div class="cal-layout">
+    <!-- Center Column: 7-Day Grid -->
+    <div class="cal-grid-box">
+      <!-- Days Header Row -->
+      <div class="cal-days-head">
+        <div class="cal-head-corner"></div>
+        {% for d in week_days %}
+        <div class="cal-head-cell">
+          <p class="cal-day-name">{{ d.day_name }}</p>
+          <p class="cal-day-num {% if d.is_today %}active{% endif %}">{{ d.day_num }}</p>
+          <p class="cal-day-month {% if d.is_today %}active{% endif %}">{{ d.month_name }}</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- All-day Banner Row -->
+      <div class="cal-allday-row">
+        <div class="cal-allday-label">All day</div>
+        <div class="cal-allday-content">
+          {% for b in all_day_events %}
+          <div class="cal-banner-pill {{ b.theme }}">
+            {% lucide b.icon %}
+            <span>{{ b.title }}</span>
+          </div>
+          {% empty %}
+          <span style="font-size: 11.5px; color: #98a2b3; font-style: italic;">No all-day campaign milestones scheduled.</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Hourly Time Grid (8 AM to 5 PM) -->
+      <div class="cal-time-grid">
+        <!-- Left Time Labels Column -->
+        <div class="cal-hours-col">
+          {% for h in hours %}
+          <div class="cal-hour-slot-label">{{ h.label }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- 7 Day Columns -->
+        {% for col_events in day_columns %}
+        <div class="cal-day-col">
+          <!-- Background Grid Lines -->
+          {% for h in hours %}
+          <div class="cal-grid-row-line"></div>
+          {% endfor %}
+
+          <!-- Positioned Event Cards -->
+          {% for ev in col_events %}
+          <div class="cal-event-card {{ ev.theme_class }}"
+               style="top: {{ ev.top_px }}px; height: {{ ev.height_px }}px;"
+               title="{{ ev.title }}{% if ev.campaign_name %} ({{ ev.campaign_name }}){% endif %}">
+            <div class="cal-event-head">
+              {% lucide ev.icon %}
+              <p class="cal-event-title">{{ ev.title }}</p>
+            </div>
+            <p class="cal-event-time">{{ ev.time_label }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Sidebar Widgets -->
+    <aside class="cal-sidebar">
+      <!-- Mini Calendar Widget -->
+      <div class="cal-widget">
+        <div class="mini-cal-header">
+          <h3 class="mini-cal-title">{{ mini_calendar.title }}</h3>
+          <div class="mini-cal-nav">
+            <a href="?date={{ mini_calendar.prev_month_date }}&view={{ view_mode }}" title="Previous month">
+              {% lucide "chevron-left" %}
+            </a>
+            <a href="?date={{ mini_calendar.next_month_date }}&view={{ view_mode }}" title="Next month">
+              {% lucide "chevron-right" %}
+            </a>
+          </div>
+        </div>
+
+        <table class="mini-cal-grid">
+          <thead>
+            <tr>
+              <th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th><th>Su</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for week in mini_calendar.weeks %}
+            <tr>
+              {% for day in week %}
+              <td>
+                <a href="?date={{ day.date_str }}&view={{ view_mode }}"
+                   class="mini-cal-day {% if not day.is_current_month %}other-month{% endif %} {% if day.is_selected %}active{% elif day.is_today %}today{% endif %}">
+                  {{ day.num }}
+                </a>
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Calendars Filter Checklist -->
+      <div class="cal-widget">
+        <div class="cal-legend-head">
+          <h3 class="cal-legend-title">Calendars</h3>
+          <button type="button" class="cal-legend-add" title="Add calendar">+</button>
+        </div>
+        <div class="cal-legend-list">
+          <label class="cal-legend-item">
+            <input type="checkbox" checked class="cm-checkbox" style="width: 14px; height: 14px;">
+            <span class="cal-legend-dot dot-blue"></span>
+            <span>My calendar</span>
+          </label>
+          <label class="cal-legend-item">
+            <input type="checkbox" checked class="cm-checkbox" style="width: 14px; height: 14px;">
+            <span class="cal-legend-dot dot-green"></span>
+            <span>Campaigns</span>
+          </label>
+          <label class="cal-legend-item">
+            <input type="checkbox" checked class="cm-checkbox" style="width: 14px; height: 14px;">
+            <span class="cal-legend-dot dot-purple"></span>
+            <span>Content</span>
+          </label>
+          <label class="cal-legend-item">
+            <input type="checkbox" checked class="cm-checkbox" style="width: 14px; height: 14px;">
+            <span class="cal-legend-dot dot-amber"></span>
+            <span>Team</span>
+          </label>
+          <label class="cal-legend-item">
+            <input type="checkbox" checked class="cm-checkbox" style="width: 14px; height: 14px;">
+            <span class="cal-legend-dot dot-gray"></span>
+            <span>External</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Upcoming Events Timeline -->
+      <div class="cal-widget">
+        <div class="cal-upcoming-head">
+          <h3 class="cal-upcoming-title">Upcoming</h3>
+          <a href="#" class="cal-upcoming-link">View all →</a>
+        </div>
+        <div class="cal-timeline-list">
+          {% for ev in upcoming_events %}
+          <div class="cal-tl-group">
+            <div class="cal-tl-head">
+              <span class="cal-legend-dot {{ ev.dot }}"></span>
+              <span>{{ ev.group }}</span>
+            </div>
+            <div class="cal-tl-item">
+              <span>› {{ ev.title }}</span>
+              <span>{{ ev.time }}</span>
+            </div>
+          </div>
+          {% empty %}
+          <p style="font-size: 12px; color: #98a2b3; margin: 0;">No upcoming meetings.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- AI Assistant Find a Time Card -->
+      <div class="cal-ai-card">
+        <div class="cal-ai-head">
+          {% lucide "sparkles" %}
+          <span>Need time?</span>
+        </div>
+        <p class="cal-ai-text">
+          Ask CommsOS to find the best time for your next campaign meeting.
+        </p>
+        <button type="button" class="cal-ai-btn" @click="showModal = true">
+          Find a time
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Interactive Add Event Modal -->
+  <div class="cal-modal-backdrop" x-show="showModal" x-cloak @click.self="showModal = false">
+    <div class="cal-modal" @keydown.escape.window="showModal = false">
+      <h3 class="cal-modal-title">Schedule New Event</h3>
+      <form method="post" action="{% url 'calendar_event_create' %}">
+        {% csrf_token %}
+        <div class="cal-form-group">
+          <label class="cal-form-label">Event Title *</label>
+          <input type="text" name="title" required placeholder="e.g. Campaign strategy review" class="cal-form-input">
+        </div>
+
+        <div class="cal-form-row">
+          <div class="cal-form-group">
+            <label class="cal-form-label">Calendar Category</label>
+            <select name="event_type" class="cal-form-select">
+              <option value="my_calendar">My calendar</option>
+              <option value="campaigns">Campaigns</option>
+              <option value="content">Content</option>
+              <option value="team">Team</option>
+              <option value="external">External</option>
+            </select>
+          </div>
+          <div class="cal-form-group">
+            <label class="cal-form-label">Date *</label>
+            <input type="date" name="date" x-model="modalDate" required class="cal-form-input">
+          </div>
+        </div>
+
+        <div class="cal-form-row">
+          <div class="cal-form-group">
+            <label class="cal-form-label">Start Time</label>
+            <input type="time" name="start_time" value="10:00" class="cal-form-input">
+          </div>
+          <div class="cal-form-group">
+            <label class="cal-form-label">End Time</label>
+            <input type="time" name="end_time" value="11:00" class="cal-form-input">
+          </div>
+        </div>
+
+        {% if org_campaigns %}
+        <div class="cal-form-group">
+          <label class="cal-form-label">Related Campaign (Optional)</label>
+          <select name="campaign_id" class="cal-form-select">
+            <option value="">None (General Event)</option>
+            {% for c in org_campaigns %}
+            <option value="{{ c.pk }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div class="cal-form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+          <input type="checkbox" name="is_all_day" id="modalAllDay" class="cm-checkbox">
+          <label for="modalAllDay" style="font-size: 12.5px; color: #344054; cursor: pointer;">All day event</label>
+        </div>
+
+        <div class="cal-modal-actions">
+          <button type="button" class="cal-btn-default" @click="showModal = false">
+            Cancel
+          </button>
+          <button type="submit" class="cal-btn-primary">
+            Schedule Event
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

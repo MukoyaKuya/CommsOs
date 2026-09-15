@@ -293,3 +293,39 @@ class CampaignFlowTests(TestCase):
         self.assertContains(response, self.campaign.name)
         self.assertNotContains(response, "Secret Two")
 
+    def test_calendar_view_renders_for_authorized_user(self):
+        from core.models import CalendarEvent
+        CalendarEvent.objects.create(
+            organization=self.org,
+            title="Team stand-up",
+            event_type="team",
+            date=date.today(),
+            created_by=self.user,
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("calendar_view"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Calendar")
+        self.assertContains(response, "Team stand-up")
+
+    def test_calendar_event_create_and_isolation(self):
+        from core.models import CalendarEvent
+        self.client.force_login(self.user)
+        post_data = {
+            "title": "Strategy Sync",
+            "event_type": "campaigns",
+            "date": date.today().strftime("%Y-%m-%d"),
+            "start_time": "10:00",
+            "end_time": "11:00",
+        }
+        res = self.client.post(reverse("calendar_event_create"), post_data, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(CalendarEvent.objects.filter(title="Strategy Sync", organization=self.org).exists())
+
+        # Verify other organization cannot see this event
+        self.client.force_login(self.other)
+        other_res = self.client.get(reverse("calendar_view"))
+        self.assertEqual(other_res.status_code, 200)
+        self.assertNotContains(other_res, "Strategy Sync")
+
+
