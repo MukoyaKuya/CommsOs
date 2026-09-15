@@ -24,7 +24,7 @@
 {% block content %}
 <div style="max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
 
-  <!-- 4 Kargul Metric Cards -->
+  <!-- 4 Kargul Stat Metric Cards -->
   <div class="kargul-stat-grid">
     <div class="kargul-card">
       <div class="kargul-card-header">
@@ -34,8 +34,8 @@
           {{ metrics.active|default:0 }} Live
         </span>
       </div>
-      <div class="kargul-card-metric">{{ metrics.active|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #7f7f7f;">/ {{ metrics.total|default:0 }} total</span></div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Across {{ membership.organization.name|default:'all workspace channels' }}</div>
+      <div class="kargul-card-metric">{{ metrics.active|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #64748b;">/ {{ metrics.total|default:0 }} total</span></div>
+      <div style="font-size: 11.5px; color: #64748b;">Across {{ membership.organization.name|default:'all workspace channels' }}</div>
     </div>
 
     <div class="kargul-card">
@@ -44,7 +44,7 @@
         <span class="kargul-stat-trend neutral">Committed</span>
       </div>
       <div class="kargul-card-metric">{{ metrics.total_budget|default:'$0' }}</div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">{{ metrics.total_spent|default:'$0' }} spent to date</div>
+      <div style="font-size: 11.5px; color: #64748b;">{{ metrics.total_spent|default:'$0' }} spent to date</div>
     </div>
 
     <div class="kargul-card">
@@ -54,8 +54,8 @@
           {% if metrics.at_risk %}{{ metrics.at_risk }} At Risk{% else %}100% Stable{% endif %}
         </span>
       </div>
-      <div class="kargul-card-metric">{{ metrics.on_track|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #7f7f7f;">on track</span></div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Calculated from open tasks & timelines</div>
+      <div class="kargul-card-metric">{{ metrics.on_track|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #64748b;">on track</span></div>
+      <div style="font-size: 11.5px; color: #64748b;">Calculated from open tasks & timelines</div>
     </div>
 
     <div class="kargul-card">
@@ -66,23 +66,23 @@
         </span>
       </div>
       <div class="kargul-card-metric">{{ metrics.completed_this_year|default:0 }}</div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Successful initiatives closed</div>
+      <div style="font-size: 11.5px; color: #64748b;">Successful initiatives closed</div>
     </div>
   </div>
 
   <!-- Kargul Segmented Filter Toolbar -->
   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
     <!-- Left Segmented Dropdowns -->
-    <div style="display: flex; items-center; flex-wrap: wrap; gap: 8px;">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
       <!-- Search Input Pill -->
       <form method="get" style="margin: 0; display: inline-flex;">
         <input type="hidden" name="tab" value="{{ tab }}">
         <input type="hidden" name="view" value="{{ view_mode }}">
         <div class="kargul-segmented" style="padding: 0 10px; gap: 6px;">
           {% lucide "search" %}
-          <input type="search" name="q" value="{{ q }}" placeholder="Filter campaigns..." style="background: transparent; border: none; outline: none; font-size: 12px; color: #f9fbff; width: 140px;">
+          <input type="search" name="q" value="{{ q }}" placeholder="Filter campaigns..." style="background: transparent; border: none; outline: none; font-size: 12px; color: var(--foreground); width: 140px;">
           {% if q %}
-            <a href="?tab={{ tab }}&view={{ view_mode }}" style="color: #7f7f7f; text-decoration: none; font-size: 11px;">✕</a>
+            <a href="?tab={{ tab }}&view={{ view_mode }}" style="color: #64748b; text-decoration: none; font-size: 11px;">✕</a>
           {% endif %}
         </div>
       </form>
@@ -106,12 +106,12 @@
         <span class="kargul-segmented-label">Channel</span>
         <span class="kargul-segmented-divider"></span>
         <span class="kargul-segmented-value">
-          <select onchange="window.location.href=this.value" style="background: transparent; border: none; color: #f9fbff; font-size: 12px; outline: none; cursor: pointer; padding-right: 4px;">
-            <option value="?tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" {% if not channel %}selected{% endif %} style="background: #1e1e1e; color: #fff;">All Channels</option>
-            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=press{% if q %}&q={{ q }}{% endif %}" {% if channel == 'press' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Press & Media</option>
-            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=social{% if q %}&q={{ q }}{% endif %}" {% if channel == 'social' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Social & Digital</option>
-            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=internal{% if q %}&q={{ q }}{% endif %}" {% if channel == 'internal' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Internal Comms</option>
-            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=ir{% if q %}&q={{ q }}{% endif %}" {% if channel == 'ir' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Investor Relations</option>
+          <select onchange="window.location.href=this.value" style="background: transparent; border: none; color: var(--foreground); font-size: 12px; outline: none; cursor: pointer; padding-right: 4px;">
+            <option value="?tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" {% if not channel %}selected{% endif %}>All Channels</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=press{% if q %}&q={{ q }}{% endif %}" {% if channel == 'press' %}selected{% endif %}>Press & Media</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=social{% if q %}&q={{ q }}{% endif %}" {% if channel == 'social' %}selected{% endif %}>Social & Digital</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=internal{% if q %}&q={{ q }}{% endif %}" {% if channel == 'internal' %}selected{% endif %}>Internal Comms</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=ir{% if q %}&q={{ q }}{% endif %}" {% if channel == 'ir' %}selected{% endif %}>Investor Relations</option>
           </select>
         </span>
       </div>
@@ -121,11 +121,11 @@
     <div style="display: flex; align-items: center; gap: 8px;">
       <!-- View Toggle -->
       <div class="kargul-segmented" style="padding: 2px;">
-        <a href="?view=list&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'list' %}background: #2a2a2a; color: #f9fbff; box-shadow: var(--kargul-bevel-shadow);{% else %}color: #7f7f7f;{% endif %}">
+        <a href="?view=list&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'list' %}background: #f1f5f9; color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px #cbd5e1;{% else %}color: #64748b;{% endif %}">
           {% lucide "list" %}
           <span>List</span>
         </a>
-        <a href="?view=grid&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'grid' %}background: #2a2a2a; color: #f9fbff; box-shadow: var(--kargul-bevel-shadow);{% else %}color: #7f7f7f;{% endif %}">
+        <a href="?view=grid&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'grid' %}background: #f1f5f9; color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px #cbd5e1;{% else %}color: #64748b;{% endif %}">
           {% lucide "kanban" %}
           <span>Board</span>
         </a>
@@ -146,9 +146,9 @@
     <!-- Kargul Board Pipeline View -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
       {% for col_status, col_title in status_columns %}
-        <div style="background: #171717; border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
-            <span style="font-size: 12px; font-weight: 600; color: #cfcfcf; text-transform: uppercase; letter-spacing: 0.04em;">{{ col_title }}</span>
+            <span style="font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">{{ col_title }}</span>
             <span class="kargul-chip">
               {{ campaigns|length }}
             </span>
@@ -157,15 +157,15 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             {% for c in campaigns %}
               {% if c.status == col_status or col_status == 'all' %}
-                <a href="{% url 'campaign_detail' c.pk %}" style="background: #1b1d20; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--line-strong)'" onmouseout="this.style.borderColor='var(--border)'">
+                <a href="{% url 'campaign_detail' c.pk %}" style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(16,24,40,0.04); transition: border-color 0.15s, box-shadow 0.15s;" onmouseover="this.style.borderColor='var(--line-strong)'; this.style.boxShadow='0 4px 10px rgba(16,24,40,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.boxShadow='0 1px 3px rgba(16,24,40,0.04)';">
                   <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
-                    <div style="font-size: 13px; font-weight: 600; color: #f9fbff; line-height: 1.3;">{{ c.name }}</div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--foreground); line-height: 1.3;">{{ c.name }}</div>
                     <span class="kargul-badge {% if c.status == 'active' %}kargul-badge-green{% elif c.status == 'draft' %}kargul-badge-neutral{% elif c.status == 'paused' %}kargul-badge-amber{% else %}kargul-badge-blue{% endif %}" style="font-size: 10px;">
                       {{ c.get_status_display }}
                     </span>
                   </div>
 
-                  <div style="font-size: 11.5px; color: #7f7f7f;">
+                  <div style="font-size: 11.5px; color: #64748b;">
                     {{ c.category_label|truncatechars:35 }}
                   </div>
 
@@ -174,10 +174,10 @@
                     <div class="kargul-progress-bar" style="flex: 1;">
                       <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct|default:0 }}%;"></div>
                     </div>
-                    <span style="font-size: 11px; font-weight: 500; color: #a4a4a4;">{{ c.progress_pct|default:0 }}%</span>
+                    <span style="font-size: 11px; font-weight: 500; color: #64748b;">{{ c.progress_pct|default:0 }}%</span>
                   </div>
 
-                  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #232323; font-size: 11px; color: #7f7f7f;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b;">
                     <span>{{ c.budget_fmt }}</span>
                     <span>{{ c.milestone_date }}</span>
                   </div>
@@ -219,12 +219,12 @@
               <!-- Campaign Identity -->
               <td>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 26px; height: 26px; border-radius: 6px; background: #2a2a2a; border: 1px solid #363636; color: #f9fbff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <div style="width: 26px; height: 26px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; color: var(--foreground); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     {{ c.badge_label }}
                   </div>
                   <div>
                     <div class="kargul-cell-primary" style="line-height: 1.2;">{{ c.name }}</div>
-                    <div style="font-size: 11px; color: #7f7f7f; margin-top: 1px;">
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">
                       {{ c.issue|default:c.geographic_focus|default:'Strategic Comms'|truncatechars:28 }}
                     </div>
                   </div>
@@ -242,10 +242,10 @@
               <!-- Lead Strategist -->
               <td>
                 <div style="display: flex; align-items: center; gap: 7px;">
-                  <div class="kargul-user-avatar" style="width: 20px; height: 20px; font-size: 9.5px; background: #2a2a2a; border: 1px solid #363636;">
+                  <div class="kargul-user-avatar" style="width: 20px; height: 20px; font-size: 9.5px;">
                     {{ c.owner_initials }}
                   </div>
-                  <span style="font-size: 12.5px; color: #cfcfcf;">{{ c.owner_name }}</span>
+                  <span style="font-size: 12.5px; color: #334155;">{{ c.owner_name }}</span>
                 </div>
               </td>
 
@@ -257,10 +257,10 @@
                       {{ ch.label }}
                     </span>
                   {% empty %}
-                    <span style="font-size: 11px; color: #7f7f7f;">Multi-channel</span>
+                    <span style="font-size: 11px; color: #64748b;">Multi-channel</span>
                   {% endfor %}
                   {% if c.channel_list|length > 2 %}
-                    <span style="font-size: 10px; color: #7f7f7f;">+{{ c.channel_list|length|add:'-2' }}</span>
+                    <span style="font-size: 10px; color: #64748b;">+{{ c.channel_list|length|add:'-2' }}</span>
                   {% endif %}
                 </div>
               </td>
@@ -268,8 +268,8 @@
               <!-- Budget & Spent -->
               <td>
                 <div>
-                  <div style="font-weight: 500; color: #f9fbff; font-variant-numeric: tabular-nums;">{{ c.budget_fmt }}</div>
-                  <div style="font-size: 10.5px; color: #7f7f7f; font-variant-numeric: tabular-nums;">Spent: {{ c.spent_fmt }}</div>
+                  <div style="font-weight: 600; color: var(--foreground); font-variant-numeric: tabular-nums;">{{ c.budget_fmt }}</div>
+                  <div style="font-size: 10.5px; color: #64748b; font-variant-numeric: tabular-nums;">Spent: {{ c.spent_fmt }}</div>
                 </div>
               </td>
 
@@ -279,15 +279,15 @@
                   <div class="kargul-progress-bar">
                     <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct }}%;"></div>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 500; color: #a4a4a4; font-variant-numeric: tabular-nums;">{{ c.progress_pct }}%</span>
+                  <span style="font-size: 11.5px; font-weight: 500; color: #475467; font-variant-numeric: tabular-nums;">{{ c.progress_pct }}%</span>
                 </div>
               </td>
 
               <!-- Next Milestone -->
               <td>
                 <div style="max-width: 140px;">
-                  <div style="font-size: 12px; color: #cfcfcf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.milestone_title }}</div>
-                  <div style="font-size: 10.5px; color: #7f7f7f;">{{ c.milestone_date }}</div>
+                  <div style="font-size: 12px; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.milestone_title }}</div>
+                  <div style="font-size: 10.5px; color: #64748b;">{{ c.milestone_date }}</div>
                 </div>
               </td>
 
@@ -302,11 +302,11 @@
             <tr>
               <td colspan="9" style="text-align: center; padding: 48px 16px;">
                 <div style="max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                  <div style="width: 42px; height: 42px; border-radius: 50%; background: #222; border: 1px solid #333; display: flex; align-items: center; justify-content: center; color: #7f7f7f;">
+                  <div style="width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b;">
                     {% lucide "megaphone" %}
                   </div>
-                  <div style="font-size: 14px; font-weight: 600; color: #f9fbff;">No campaigns found</div>
-                  <p style="font-size: 12px; color: #7f7f7f; margin: 0; line-height: 1.4;">
+                  <div style="font-size: 14px; font-weight: 600; color: var(--foreground);">No campaigns found</div>
+                  <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4;">
                     {% if q %}No results match your search query "{{ q }}". Try resetting your filter.{% else %}Get started by creating your first communications campaign.{% endif %}
                   </p>
                   {% if membership.role == 'owner' or membership.role == 'manager' %}
@@ -324,9 +324,9 @@
 
     <!-- Kargul Pagination Bar -->
     {% if page_obj.has_other_pages %}
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; font-size: 12px; color: #7f7f7f;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; font-size: 12px; color: #64748b;">
         <div>
-          Showing <span style="color: #f9fbff; font-weight: 500;">{{ page_obj.start_index }}-{{ page_obj.end_index }}</span> of <span style="color: #f9fbff; font-weight: 500;">{{ page_obj.paginator.count }}</span> campaigns
+          Showing <span style="color: var(--foreground); font-weight: 600;">{{ page_obj.start_index }}-{{ page_obj.end_index }}</span> of <span style="color: var(--foreground); font-weight: 600;">{{ page_obj.paginator.count }}</span> campaigns
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
           {% if page_obj.has_previous %}
@@ -334,7 +334,7 @@
               Previous
             </a>
           {% endif %}
-          <span style="padding: 0 6px; color: #a4a4a4;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          <span style="padding: 0 6px; color: #334155;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
           {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}&tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" class="kargul-btn kargul-btn-secondary" style="height: 28px; padding: 0 10px;">
               Next

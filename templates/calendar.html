@@ -24,7 +24,7 @@
 {% block content %}
 <style>
   /* ==========================================================================
-     CommsOS Calendar - Kargul Studio Obsidian Theme
+     CommsOS Calendar - Clean Modern Light Mode System
      ========================================================================== */
   .cal-page {
     color: var(--foreground);
@@ -59,18 +59,19 @@
 
   /* Center Grid Box */
   .cal-grid-box {
-    background: #1b1d20;
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
   }
 
   /* Days Header */
   .cal-days-head {
     display: grid;
-    grid-template-columns: 56px repeat(7, 1fr);
+    grid-template-columns: 64px repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
-    background: #17181a;
+    background: #f8fafc;
   }
   .cal-head-corner {
     border-right: 1px solid var(--border);
@@ -86,14 +87,14 @@
   .cal-day-name {
     font-size: 11px;
     font-weight: 600;
-    color: #7f7f7f;
+    color: #64748b;
     text-transform: uppercase;
     margin: 0;
   }
   .cal-day-num {
     font-size: 16px;
     font-weight: 700;
-    color: #f9fbff;
+    color: #0f172a;
     margin: 2px 0 0 0;
   }
   .cal-day-num.active {
@@ -105,23 +106,23 @@
     border-radius: 50%;
     background: var(--primary);
     color: #ffffff;
-    box-shadow: var(--kargul-bevel-shadow);
+    box-shadow: 0 2px 4px rgba(67, 56, 202, 0.25);
   }
 
   /* All Day Row */
   .cal-allday-row {
     display: grid;
-    grid-template-columns: 56px 1fr;
+    grid-template-columns: 64px 1fr;
     border-bottom: 1px solid var(--border);
-    background: #191b1e;
+    background: #fcfcfd;
     min-height: 42px;
   }
   .cal-allday-label {
     border-right: 1px solid var(--border);
     padding: 10px 8px;
     font-size: 11px;
-    color: #7f7f7f;
-    font-weight: 500;
+    color: #64748b;
+    font-weight: 600;
     text-align: center;
     display: flex;
     align-items: center;
@@ -142,57 +143,59 @@
     border-radius: 9999px;
     font-size: 11.5px;
     font-weight: 500;
-    background: #2a2a2a;
-    border: 1px solid #363636;
-    color: #f9fbff;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
   }
 
   /* Week Grid Body with Absolute Event Positioning */
   .cal-week-body {
     display: grid;
-    grid-template-columns: 56px repeat(7, 1fr);
+    grid-template-columns: 64px repeat(7, 1fr);
     position: relative;
-    height: 720px;
+    height: 640px;
     overflow-y: auto;
+    background: #ffffff;
   }
 
   .cal-time-axis {
     border-right: 1px solid var(--border);
-    background: #17181a;
+    background: #f8fafc;
   }
   .cal-time-slot {
-    height: 60px;
-    border-bottom: 1px solid #232323;
-    padding: 4px 6px;
+    height: 64px;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 6px 8px;
     text-align: right;
-    font-size: 10.5px;
-    color: #7f7f7f;
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
     user-select: none;
     box-sizing: border-box;
   }
 
   .cal-day-col {
     position: relative;
-    border-right: 1px solid #232323;
-    height: 720px;
+    border-right: 1px solid #f1f5f9;
+    height: 640px;
   }
   .cal-day-col:last-child {
     border-right: none;
   }
   .cal-grid-row-line {
-    height: 60px;
-    border-bottom: 1px solid #232323;
+    height: 64px;
+    border-bottom: 1px solid #f1f5f9;
     box-sizing: border-box;
   }
   .cal-grid-row-line:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: #f8fafc;
   }
 
   /* Event Card in Day Column */
   .cal-event-card {
     position: absolute;
-    left: 3px;
-    right: 3px;
+    left: 4px;
+    right: 4px;
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 11.5px;
@@ -202,36 +205,42 @@
     transition: transform 0.12s, box-shadow 0.12s;
     z-index: 5;
     box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
   }
   .cal-event-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 10px rgba(16, 24, 40, 0.12);
     z-index: 10;
   }
-  .cal-event-blue {
-    background: var(--tag-blue-bg);
-    border-color: var(--tag-blue-border);
-    color: var(--tag-blue-text);
+  .theme-blue, .cal-event-blue {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
   }
-  .cal-event-green {
-    background: var(--tag-green-bg);
-    border-color: var(--tag-green-border);
-    color: var(--tag-green-text);
+  .theme-green, .cal-event-green {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
   }
-  .cal-event-purple {
-    background: var(--tag-purple-bg);
-    border-color: var(--tag-purple-border);
-    color: var(--tag-purple-text);
+  .theme-purple, .cal-event-purple {
+    background: #faf5ff;
+    border-color: #e9d5ff;
+    color: #6b21a8;
   }
-  .cal-event-amber {
-    background: var(--tag-amber-bg);
-    border-color: var(--tag-amber-border);
-    color: var(--tag-amber-text);
+  .theme-amber, .cal-event-amber {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
   }
-  .cal-event-gray, .cal-event-neutral {
-    background: var(--tag-neutral-bg);
-    border-color: var(--tag-neutral-border);
-    color: var(--tag-neutral-text);
+  .theme-rose, .cal-event-rose {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+  }
+  .theme-gray, .cal-event-gray, .cal-event-neutral {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #334155;
   }
 
   .cal-event-head {
@@ -241,7 +250,7 @@
   }
   .cal-event-title {
     font-weight: 600;
-    font-size: 11px;
+    font-size: 11.5px;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -251,6 +260,7 @@
     font-size: 10px;
     opacity: 0.85;
     margin: 2px 0 0 0;
+    font-weight: 500;
   }
 
   /* Right Sidebar Panels */
@@ -260,10 +270,11 @@
     gap: 16px;
   }
   .cal-widget {
-    background: #1b1d20;
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
   }
 
   /* Mini Calendar */
@@ -274,9 +285,9 @@
     margin-bottom: 12px;
   }
   .mini-cal-title {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #f9fbff;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
     margin: 0;
   }
   .mini-cal-nav {
@@ -285,15 +296,16 @@
     gap: 4px;
   }
   .mini-cal-nav a {
-    color: #7f7f7f;
+    color: #64748b;
     display: flex;
-    padding: 2px;
+    padding: 3px;
     border-radius: 4px;
     text-decoration: none;
+    border: 1px solid #e2e8f0;
   }
   .mini-cal-nav a:hover {
-    color: #ffffff;
-    background: #2a2a2a;
+    color: #0f172a;
+    background: #f1f5f9;
   }
   .mini-cal-grid {
     width: 100%;
@@ -303,7 +315,7 @@
   .mini-cal-grid th {
     font-size: 10.5px;
     font-weight: 600;
-    color: #7f7f7f;
+    color: #64748b;
     padding: 4px 0;
   }
   .mini-cal-grid td {
@@ -314,13 +326,13 @@
     font-size: 11.5px;
     padding: 5px 0;
     border-radius: 6px;
-    color: #cfcfcf;
+    color: #334155;
     text-decoration: none;
     transition: background 0.12s;
   }
   .mini-cal-day:hover {
-    background: #2a2a2a;
-    color: #ffffff;
+    background: #f1f5f9;
+    color: #0f172a;
   }
   .mini-cal-day.today {
     background: var(--primary);
@@ -328,7 +340,7 @@
     font-weight: 600;
   }
   .mini-cal-day.other-month {
-    color: #454545;
+    color: #cbd5e1;
   }
 
   /* Upcoming Timeline */
@@ -339,9 +351,9 @@
     margin-bottom: 12px;
   }
   .cal-upcoming-title {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #f9fbff;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
     margin: 0;
   }
   .cal-timeline-list {
@@ -355,14 +367,14 @@
     gap: 6px;
     font-size: 11px;
     font-weight: 600;
-    color: #a4a4a4;
+    color: #64748b;
   }
   .cal-tl-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 11.5px;
-    color: #cfcfcf;
+    font-size: 12px;
+    color: #0f172a;
     padding-left: 12px;
   }
   .cal-tl-dot {
@@ -375,7 +387,7 @@
   .cal-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -383,10 +395,10 @@
     z-index: 1000;
   }
   .cal-modal {
-    background: #1b1d20;
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
     width: 100%;
     max-width: 480px;
     padding: 24px;
@@ -414,7 +426,7 @@
       </div>
 
       <div class="kargul-segmented" style="padding: 0 12px;">
-        <span style="color: #f9fbff; font-weight: 500;">{{ date_range_label }}</span>
+        <span style="color: var(--foreground); font-weight: 600;">{{ date_range_label }}</span>
       </div>
     </div>
 
@@ -452,7 +464,7 @@
             <span>{{ b.title }}</span>
           </div>
           {% empty %}
-          <span style="font-size: 11.5px; color: #7f7f7f; font-style: italic;">No all-day campaign milestones scheduled.</span>
+          <span style="font-size: 11.5px; color: #64748b; font-style: italic;">No all-day campaign milestones scheduled.</span>
           {% endfor %}
         </div>
       </div>
@@ -462,7 +474,7 @@
         <!-- Time Axis -->
         <div class="cal-time-axis">
           {% for h in hours %}
-          <div class="cal-time-slot">{{ h }}:00</div>
+          <div class="cal-time-slot">{{ h.label }}</div>
           {% endfor %}
         </div>
 
@@ -539,38 +551,38 @@
           {% for ev in upcoming_events %}
           <div style="display: flex; flex-direction: column; gap: 3px;">
             <div class="cal-tl-head">
-              <span class="cal-tl-dot" style="background: {% if ev.dot == 'dot-blue' %}var(--primary){% else %}#7f7f7f{% endif %};"></span>
+              <span class="cal-tl-dot" style="background: {% if ev.dot == 'dot-blue' %}var(--primary){% else %}#64748b{% endif %};"></span>
               <span>{{ ev.group }}</span>
             </div>
             <div class="cal-tl-item">
               <span style="font-weight: 500;">{{ ev.title }}</span>
-              <span style="font-size: 11px; color: #7f7f7f;">{{ ev.time }}</span>
+              <span style="font-size: 11px; color: #64748b;">{{ ev.time }}</span>
             </div>
           </div>
           {% empty %}
-          <p style="font-size: 12px; color: #7f7f7f; margin: 0;">No upcoming events scheduled.</p>
+          <p style="font-size: 12px; color: #64748b; margin: 0;">No upcoming events scheduled.</p>
           {% endfor %}
         </div>
       </div>
 
       <!-- Categories Filter -->
       <div class="cal-widget">
-        <div style="font-size: 12.5px; font-weight: 600; color: #f9fbff; margin-bottom: 10px;">Channels</div>
+        <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 10px;">Channels</div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cfcfcf;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #FFDB4B;"></span>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
             <span>Press & Media</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cfcfcf;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #FE4A8E;"></span>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #ec4899;"></span>
             <span>Social & Viral</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cfcfcf;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #9668FE;"></span>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></span>
             <span>Internal Comms</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cfcfcf;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: #16C89E;"></span>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
             <span>Investor Relations</span>
           </div>
         </div>
@@ -582,8 +594,8 @@
   <div class="cal-modal-backdrop" x-show="showModal" x-cloak @click.self="showModal = false">
     <div class="cal-modal" @keydown.escape.window="showModal = false">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-        <h3 style="font-size: 16px; font-weight: 600; color: #f9fbff; margin: 0;">Schedule New Event</h3>
-        <button type="button" @click="showModal = false" style="background: none; border: none; color: #7f7f7f; font-size: 16px; cursor: pointer;">✕</button>
+        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Schedule New Event</h3>
+        <button type="button" @click="showModal = false" style="background: none; border: none; color: #64748b; font-size: 16px; cursor: pointer;">✕</button>
       </div>
 
       <form method="post" action="{% url 'calendar_event_create' %}">
@@ -635,7 +647,7 @@
 
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
           <input type="checkbox" name="is_all_day" id="modalAllDay" style="accent-color: var(--primary); cursor: pointer;">
-          <label for="modalAllDay" style="font-size: 12px; color: #a4a4a4; cursor: pointer;">All day event</label>
+          <label for="modalAllDay" style="font-size: 12px; color: #475467; cursor: pointer;">All day event</label>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">

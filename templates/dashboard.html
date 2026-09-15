@@ -9,13 +9,13 @@
   <!-- Welcome Header Banner -->
   <div style="display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 4px;">
     <div>
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #7f7f7f; font-weight: 600; margin-bottom: 4px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; margin-bottom: 4px;">
         Workspace / {{ membership.organization.name|default:'Strategic Operations' }}
       </div>
-      <h2 style="font-size: 22px; font-weight: 700; color: #f9fbff; letter-spacing: -0.02em; margin: 0;">
+      <h2 style="font-size: 24px; font-weight: 700; color: var(--foreground); letter-spacing: -0.02em; margin: 0;">
         Welcome back, {{ user.first_name|default:user.username }}
       </h2>
-      <p style="font-size: 13px; color: #7f7f7f; margin: 4px 0 0 0;">
+      <p style="font-size: 13.5px; color: #64748b; margin: 4px 0 0 0;">
         Real-time pipeline health, active deliverables, and operational intelligence.
       </p>
     </div>
@@ -44,7 +44,7 @@
         </span>
       </div>
       <div class="kargul-card-metric">{{ dashboard_metrics.total_campaigns|default:0 }}</div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">{{ dashboard_metrics.active_campaigns|default:0 }} initiatives actively deployed</div>
+      <div style="font-size: 11.5px; color: #64748b;">{{ dashboard_metrics.active_campaigns|default:0 }} initiatives actively deployed</div>
     </div>
 
     <div class="kargul-card">
@@ -52,8 +52,8 @@
         <span class="kargul-card-title">Tasks Completed</span>
         <span class="kargul-stat-trend up">{{ dashboard_metrics.task_completion|default:0 }}%</span>
       </div>
-      <div class="kargul-card-metric">{{ dashboard_metrics.task_done|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #7f7f7f;">/ {{ dashboard_metrics.task_total|default:0 }}</span></div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Team operational velocity</div>
+      <div class="kargul-card-metric">{{ dashboard_metrics.task_done|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #64748b;">/ {{ dashboard_metrics.task_total|default:0 }}</span></div>
+      <div style="font-size: 11.5px; color: #64748b;">Team operational velocity</div>
     </div>
 
     <div class="kargul-card">
@@ -62,7 +62,7 @@
         <span class="kargul-stat-trend neutral">Scheduled</span>
       </div>
       <div class="kargul-card-metric">{{ dashboard_metrics.content_count|default:0 }}</div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Press, social, & internal items</div>
+      <div style="font-size: 11.5px; color: #64748b;">Press, social, & internal items</div>
     </div>
 
     <div class="kargul-card">
@@ -75,7 +75,7 @@
       <div class="kargul-card-metric">
         {% if dashboard_metrics.engagement_rate != None %}{{ dashboard_metrics.engagement_rate }}%{% else %}—{% endif %}
       </div>
-      <div style="font-size: 11.5px; color: #7f7f7f;">Across verified analytics</div>
+      <div style="font-size: 11.5px; color: #64748b;">Across verified analytics</div>
     </div>
   </div>
 
@@ -85,18 +85,18 @@
     <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
 
       <!-- Active Campaigns Section -->
-      <div style="background: #1b1d20; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border);">
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(16,24,40,0.04);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); background: #ffffff;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 13.5px; font-weight: 600; color: #f9fbff;">Active Campaigns</span>
+            <span style="font-size: 13.5px; font-weight: 700; color: var(--foreground);">Active Campaigns</span>
             <span class="kargul-badge kargul-badge-green" style="font-size: 10px;">{{ campaigns|length }} Live</span>
           </div>
-          <a href="{% url 'campaigns_list' %}" style="font-size: 12px; color: #a4a4a4; text-decoration: none;" onmouseover="this.style.color='#f9fbff'" onmouseout="this.style.color='#a4a4a4'">
+          <a href="{% url 'campaigns_list' %}" style="font-size: 12px; color: #64748b; text-decoration: none; font-weight: 500;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#64748b'">
             View all →
           </a>
         </div>
 
-        <div class="kargul-table-container" style="border: none; border-radius: 0;">
+        <div class="kargul-table-container" style="border: none; border-radius: 0; box-shadow: none;">
           <table class="kargul-table">
             <thead>
               <tr>
@@ -113,12 +113,12 @@
                 <tr onclick="window.location.href='{% url 'campaign_detail' campaign.pk %}'" style="cursor: pointer;">
                   <td>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if campaign.status == 'active' %}var(--status){% elif campaign.status == 'paused' %}var(--warning){% else %}#676767{% endif %};"></span>
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if campaign.status == 'active' %}var(--status){% elif campaign.status == 'paused' %}var(--warning){% else %}#94a3b8{% endif %};"></span>
                       <span class="kargul-cell-primary">{{ campaign.name }}</span>
                     </div>
                   </td>
                   <td>
-                    <span style="font-size: 12px; color: #7f7f7f;">
+                    <span style="font-size: 12px; color: #64748b;">
                       {{ campaign.geographic_focus|default:campaign.audience|default:'Global'|truncatechars:22 }}
                     </span>
                   </td>
@@ -128,7 +128,7 @@
                     </span>
                   </td>
                   <td>
-                    <span style="font-size: 12px; color: #cfcfcf;">
+                    <span style="font-size: 12px; color: var(--foreground);">
                       {% if campaign.dashboard_next %}{{ campaign.dashboard_next.title|truncatechars:22 }}{% else %}Planning{% endif %}
                     </span>
                   </td>
@@ -137,7 +137,7 @@
                       <div class="kargul-progress-bar" style="width: 50px;">
                         <div class="kargul-progress-fill green" style="width: {{ campaign.dashboard_progress }}%;"></div>
                       </div>
-                      <span style="font-size: 11px; color: #a4a4a4;">{{ campaign.dashboard_progress }}%</span>
+                      <span style="font-size: 11px; color: #475467; font-weight: 500;">{{ campaign.dashboard_progress }}%</span>
                     </div>
                   </td>
                   <td style="text-align: right;" onclick="event.stopPropagation();">
@@ -148,7 +148,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="6" style="text-align: center; padding: 28px; color: #7f7f7f; font-size: 12.5px;">
+                  <td colspan="6" style="text-align: center; padding: 28px; color: #64748b; font-size: 12.5px;">
                     No campaigns created yet. Start a new initiative to begin.
                   </td>
                 </tr>
@@ -161,62 +161,62 @@
       <!-- Split Row: Tasks & Upcoming Deliverables -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <!-- Tasks Card -->
-        <div style="background: #1b1d20; border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 3px rgba(16,24,40,0.04);">
           <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; font-weight: 600; color: #f9fbff;">Open Tasks</span>
+            <span style="font-size: 13px; font-weight: 700; color: var(--foreground);">Open Tasks</span>
             {% if campaigns %}
-              <a href="{% url 'campaign_detail' campaigns.0.pk %}#tasks" style="font-size: 11.5px; color: #7f7f7f; text-decoration: none;">View all →</a>
+              <a href="{% url 'campaign_detail' campaigns.0.pk %}#tasks" style="font-size: 11.5px; color: #64748b; text-decoration: none;">View all →</a>
             {% endif %}
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             {% for task in my_tasks %}
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; background: #17181a; border: 1px solid var(--border); border-radius: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                  <span style="width: 14px; height: 14px; border: 1.5px solid {% if task.status == 'done' %}var(--status){% else %}#414141{% endif %}; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;">
+                  <span style="width: 14px; height: 14px; border: 1.5px solid {% if task.status == 'done' %}var(--status){% else %}#cbd5e1{% endif %}; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; background: #ffffff;">
                     {% if task.status == 'done' %}<svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5L4 7L8 3" stroke="var(--status)" stroke-width="2" stroke-linecap="round"/></svg>{% endif %}
                   </span>
-                  <span style="font-size: 12px; color: #f9fbff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ task.title }}</span>
+                  <span style="font-size: 12px; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;">{{ task.title }}</span>
                 </div>
-                <span style="font-size: 11px; color: #7f7f7f; flex-shrink: 0;">{{ task.due_on|date:'M j' }}</span>
+                <span style="font-size: 11px; color: #64748b; flex-shrink: 0;">{{ task.due_on|date:'M j' }}</span>
               </div>
             {% empty %}
-              <div style="font-size: 12px; color: #7f7f7f; padding: 14px 0; text-align: center;">All tasks completed.</div>
+              <div style="font-size: 12px; color: #64748b; padding: 14px 0; text-align: center;">All tasks completed.</div>
             {% endfor %}
           </div>
         </div>
 
         <!-- Upcoming Deliverables Card -->
-        <div style="background: #1b1d20; border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 3px rgba(16,24,40,0.04);">
           <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 13px; font-weight: 600; color: #f9fbff;">Upcoming Content</span>
-            <a href="{% url 'calendar_view' %}" style="font-size: 11.5px; color: #7f7f7f; text-decoration: none;">Calendar →</a>
+            <span style="font-size: 13px; font-weight: 700; color: var(--foreground);">Upcoming Content</span>
+            <a href="{% url 'calendar_view' %}" style="font-size: 11.5px; color: #64748b; text-decoration: none;">Calendar →</a>
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             {% for item in upcoming_items %}
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; background: #17181a; border: 1px solid var(--border); border-radius: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                  <span style="font-size: 10px; font-weight: 600; color: #a4a4a4; background: #2a2a2a; border-radius: 4px; padding: 2px 5px; flex-shrink: 0;">
+                  <span style="font-size: 10px; font-weight: 600; color: #475467; background: #e2e8f0; border-radius: 4px; padding: 2px 5px; flex-shrink: 0;">
                     {{ item.planned_on|date:'M j' }}
                   </span>
-                  <span style="font-size: 12px; color: #f9fbff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.title }}</span>
+                  <span style="font-size: 12px; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;">{{ item.title }}</span>
                 </div>
                 <span class="kargul-badge kargul-badge-neutral" style="font-size: 10px; padding: 1px 6px;">{{ item.channel }}</span>
               </div>
             {% empty %}
-              <div style="font-size: 12px; color: #7f7f7f; padding: 14px 0; text-align: center;">No upcoming deliverables.</div>
+              <div style="font-size: 12px; color: #64748b; padding: 14px 0; text-align: center;">No upcoming deliverables.</div>
             {% endfor %}
           </div>
         </div>
       </div>
 
       <!-- Analytics / Engagement Trend Section -->
-      <div style="background: #1b1d20; border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px;">
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
           <div>
-            <div style="font-size: 13.5px; font-weight: 600; color: #f9fbff;">Campaign Performance</div>
-            <div style="font-size: 11.5px; color: #7f7f7f;">Historical engagement & reach index</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--foreground);">Campaign Performance</div>
+            <div style="font-size: 11.5px; color: #64748b;">Historical engagement & reach index</div>
           </div>
-          <span style="font-size: 11.5px; color: #a4a4a4; background: #2a2a2a; border: 1px solid #363636; border-radius: 9999px; padding: 3px 10px;">
+          <span style="font-size: 11.5px; color: #475467; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 3px 10px;">
             {% if chart_meta.has_data and chart_meta.start_date %}
               {{ chart_meta.start_date|date:'M j' }} – {{ chart_meta.end_date|date:'M j' }}
             {% else %}
@@ -226,27 +226,27 @@
         </div>
 
         {% if chart_meta.has_data %}
-          <div style="height: 140px; position: relative; margin-bottom: 14px; background: repeating-linear-gradient(#232323 0 1px, transparent 1px 35px);">
+          <div style="height: 140px; position: relative; margin-bottom: 14px; background: repeating-linear-gradient(#f1f5f9 0 1px, transparent 1px 35px);">
             <svg viewBox="0 0 600 140" preserveAspectRatio="none" style="width: 100%; height: 100%;">
               <defs>
                 <linearGradient id="kargulChartFade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#4124fb" stop-opacity="0.35"/>
-                  <stop offset="1" stop-color="#4124fb" stop-opacity="0"/>
+                  <stop offset="0" stop-color="#4338ca" stop-opacity="0.2"/>
+                  <stop offset="1" stop-color="#4338ca" stop-opacity="0"/>
                 </linearGradient>
               </defs>
               {% if chart_meta.area_path %}
                 <path d="{{ chart_meta.area_path }}" fill="url(#kargulChartFade)"/>
               {% endif %}
               {% if chart_meta.line_path %}
-                <path d="{{ chart_meta.line_path }}" fill="none" stroke="#4124fb" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="{{ chart_meta.line_path }}" fill="none" stroke="#4338ca" stroke-width="2.5" stroke-linecap="round"/>
               {% endif %}
               {% for pt in chart_meta.points %}
-                <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="3.5" fill="#4124fb" stroke="#1b1d20" stroke-width="2"/>
+                <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="4" fill="#4338ca" stroke="#ffffff" stroke-width="2"/>
               {% endfor %}
             </svg>
           </div>
         {% else %}
-          <div style="padding: 28px; text-align: center; color: #7f7f7f; font-size: 12px; background: #17181a; border: 1px dashed #2a2a2a; border-radius: 8px; margin-bottom: 14px;">
+          <div style="padding: 28px; text-align: center; color: #64748b; font-size: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; margin-bottom: 14px;">
             No performance telemetry recorded yet. Add observations to plot trends.
           </div>
         {% endif %}
@@ -254,20 +254,20 @@
         <!-- Telemetry Numbers Row -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
           <div>
-            <div style="font-size: 11px; color: #7f7f7f;">AVG ENGAGEMENT</div>
-            <div style="font-size: 16px; font-weight: 600; color: #f9fbff; margin-top: 2px;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">AVG ENGAGEMENT</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--foreground); margin-top: 2px;">
               {% if dashboard_metrics.engagement_rate != None %}{{ dashboard_metrics.engagement_rate }}%{% else %}—{% endif %}
             </div>
           </div>
           <div>
-            <div style="font-size: 11px; color: #7f7f7f;">TOTAL IMPRESSIONS</div>
-            <div style="font-size: 16px; font-weight: 600; color: #f9fbff; margin-top: 2px;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">TOTAL IMPRESSIONS</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--foreground); margin-top: 2px;">
               {{ dashboard_metrics.total_impressions }}
             </div>
           </div>
           <div>
-            <div style="font-size: 11px; color: #7f7f7f;">TOTAL INTERACTIONS</div>
-            <div style="font-size: 16px; font-weight: 600; color: #f9fbff; margin-top: 2px;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">TOTAL INTERACTIONS</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--foreground); margin-top: 2px;">
               {{ dashboard_metrics.total_engagements }}
             </div>
           </div>
@@ -279,25 +279,25 @@
     <div style="display: flex; flex-direction: column; gap: 20px;">
 
       <!-- Intelligence Signal Card -->
-      <div style="background: linear-gradient(145deg, #1e1b4b 0%, #171822 100%); border: 1px solid #312e81; border-radius: 10px; padding: 18px; box-shadow: 0 4px 20px rgba(49, 46, 129, 0.2);">
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">
+      <div style="background: linear-gradient(145deg, #eef2ff 0%, #ffffff 100%); border: 1px solid #c7d2fe; border-radius: 10px; padding: 18px; box-shadow: 0 4px 14px rgba(67, 56, 202, 0.08);">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #4338ca; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">
           {% lucide "sparkles" %}
           <span>Strategic Signal</span>
         </div>
 
         {% if latest_insight %}
-          <div style="font-size: 14px; font-weight: 600; color: #ffffff; line-height: 1.35; margin-bottom: 6px;">
+          <div style="font-size: 14px; font-weight: 700; color: #1e1b4b; line-height: 1.35; margin-bottom: 6px;">
             {{ latest_insight.evidence.winner }} is leading engagement.
           </div>
-          <p style="font-size: 12px; color: #c7d2fe; margin: 0 0 14px 0; line-height: 1.45;">
+          <p style="font-size: 12.5px; color: #3730a3; margin: 0 0 14px 0; line-height: 1.45;">
             {{ latest_insight.narrative }}
           </p>
 
           {% if latest_recommendation %}
-            <div style="padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-              <div style="font-size: 11px; color: #a5b4fc; font-weight: 600; text-transform: uppercase;">Proposed Plan Adjustment:</div>
+            <div style="padding-top: 12px; border-top: 1px solid #c7d2fe;">
+              <div style="font-size: 11px; color: #4338ca; font-weight: 700; text-transform: uppercase;">Proposed Plan Adjustment:</div>
               {% for change in latest_recommendation.changes %}
-                <div style="font-size: 12px; color: #ffffff; margin-top: 4px;">
+                <div style="font-size: 12px; color: #1e1b4b; margin-top: 4px; font-weight: 500;">
                   • {{ change.channel }}: {{ change.title }}
                 </div>
               {% endfor %}
@@ -307,36 +307,36 @@
             </div>
           {% endif %}
         {% else %}
-          <div style="font-size: 13px; font-weight: 600; color: #ffffff; margin-bottom: 4px;">
+          <div style="font-size: 13.5px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">
             Continuous Synthesis Ready
           </div>
-          <p style="font-size: 12px; color: #c7d2fe; margin: 0; line-height: 1.4;">
+          <p style="font-size: 12px; color: #4338ca; margin: 0; line-height: 1.45;">
             As observations and campaign deliverables execute, automated signals and resource reallocation suggestions appear here.
           </p>
         {% endif %}
       </div>
 
       <!-- Recent Workspace Activity Feed -->
-      <div style="background: #1b1d20; border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 3px rgba(16,24,40,0.04);">
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 13px; font-weight: 600; color: #f9fbff;">Recent Activity</span>
-          <span style="font-size: 11px; color: #7f7f7f;">Audit Log</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--foreground);">Recent Activity</span>
+          <span style="font-size: 11px; color: #64748b;">Audit Log</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
           {% for event in recent_activity %}
-            <div style="display: flex; align-items: flex-start; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid #232323;">
+            <div style="display: flex; align-items: flex-start; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;">
               <div class="kargul-user-avatar" style="width: 22px; height: 22px; font-size: 10px; margin-top: 2px;">
                 {{ event.actor.username|slice:':1'|upper }}
               </div>
               <div style="font-size: 12px; line-height: 1.35; flex: 1;">
-                <span style="color: #f9fbff; font-weight: 500;">{{ event.actor.get_full_name|default:event.actor.username }}</span>
-                <span style="color: #a4a4a4;">{{ event.action|cut:'_' }}</span>
-                <div style="font-size: 10.5px; color: #7f7f7f; margin-top: 2px;">{{ event.created_at|timesince }} ago</div>
+                <span style="color: var(--foreground); font-weight: 600;">{{ event.actor.get_full_name|default:event.actor.username }}</span>
+                <span style="color: #475467;">{{ event.action|cut:'_' }}</span>
+                <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">{{ event.created_at|timesince }} ago</div>
               </div>
             </div>
           {% empty %}
-            <div style="font-size: 12px; color: #7f7f7f; padding: 14px 0; text-align: center;">No activity recorded yet.</div>
+            <div style="font-size: 12px; color: #64748b; padding: 14px 0; text-align: center;">No activity recorded yet.</div>
           {% endfor %}
         </div>
       </div>
