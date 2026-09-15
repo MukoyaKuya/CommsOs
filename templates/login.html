@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Log in · CommsOS{% endblock %}
+{% block auth_content %}
+<div class="max-w-[400px] mx-auto pt-8 sm:pt-12">
+  <div class="text-center mb-6">
+    <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#0c66e4] text-white font-bold text-[17px]">C</span>
+    <h1 class="text-[22px] font-semibold tracking-tight mt-3">Welcome back</h1>
+    <p class="jira-muted mt-1">Sign in to your workspace.</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="p-6 sm:p-7">
+      {% if form.errors %}
+      <div class="jira-flag jira-flag-error mb-4" role="alert">
+        <span class="dot mt-1.5 bg-[#c9372c] shrink-0"></span>
+        <div>
+          <p class="font-semibold">Check your username and password.</p>
+          <p class="jira-muted mt-0.5">The account or password you entered doesn't match our records.</p>
+        </div>
+      </div>
+      {% endif %}
+      <form method="post" class="space-y-4" novalidate>
+        {% csrf_token %}
+        <div>
+          <label class="jira-label" for="id_username">Username</label>
+          <input id="id_username" name="username" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false"
+                 value="{{ form.username.value|default:'' }}" class="jira-input" placeholder="e.g. demo_manager" aria-describedby="login-hint">
+        </div>
+        <div x-data="{show:false}">
+          <label class="jira-label" for="id_password">Password</label>
+          <div class="relative">
+            <input id="id_password" name="password" type="password" required autocomplete="current-password"
+                   x-bind:type="show ? 'text' : 'password'" class="jira-input !pr-16" placeholder="Enter your password">
+            <button type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-[12.5px] font-medium text-[#0c66e4] hover:bg-[#e9f2ff] rounded px-2 py-1"
+                    x-on:click="show=!show" x-text="show ? 'Hide' : 'Show'">Show</button>
+          </div>
+        </div>
+        <button class="button w-full !min-h-[42px] !text-[14.5px]" type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

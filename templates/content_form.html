@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav class="jira-crumb mb-1" aria-label="Breadcrumb"><a href="{% url 'campaign_detail' campaign.pk %}" class="hover:underline">Campaign</a> / {{ item.title|truncatechars:40 }} / Edit</nav>
+<h1 class="jira-h1 mb-4">Edit content item</h1>
+<form method="post" class="jira-panel max-w-[760px]">
+  <div class="jira-panel-head"><span class="jira-h2">{{ item.title }}</span><span class="lozenge lozenge-todo">{{ item.channel }}</span></div>
+  <div class="jira-panel-body">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="jira-flag jira-flag-error mb-3"><span class="dot mt-1.5 bg-[#c9372c]"></span><p>{{ error }}</p></div>{% endfor %}
+    {% for field in form %}
+    <div class="jira-field">
+      <label for="{{ field.id_for_label }}" class="jira-label">{{ field.label }}</label>
+      <div class="form-field">{{ field }}</div>
+      {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    <div class="flex gap-2 mt-4"><button class="button">Save item</button><a href="{% url 'campaign_detail' campaign.pk %}" class="btn-default">Cancel</a></div>
+  </div>
+</form>
+{% endblock %}

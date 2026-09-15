@@ -1,0 +1,9 @@
+.env
+*.pyc
+__pycache__/
+.venv/
+db.sqlite3
+node_modules/
+staticfiles/
+.pytest_cache/
+.ruff_cache/

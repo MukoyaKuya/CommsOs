@@ -1,0 +1,14 @@
+<div class="grid sm:grid-cols-3 gap-2" aria-live="polite">
+  <div class="rounded-[3px] border border-[#dfe1e6] bg-[#fafbfc] p-2.5">
+    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5e6c84]">Planned items</p>
+    <p class="text-[20px] font-semibold tabular-nums">{{ campaign.items.count }}</p>
+  </div>
+  <div class="rounded-[3px] border border-[#dfe1e6] bg-[#fafbfc] p-2.5">
+    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5e6c84]">Tasks</p>
+    <p class="text-[20px] font-semibold tabular-nums">{{ campaign.tasks.count }}</p>
+  </div>
+  <div class="rounded-[3px] border border-[#dfe1e6] bg-[#fafbfc] p-2.5">
+    <p class="text-[11px] font-bold uppercase tracking-wide text-[#5e6c84]">Best rate</p>
+    <p class="text-[20px] font-semibold tabular-nums">{% if evidence %}{{ evidence.groups.0.rate }}%{% else %}—{% endif %}</p>
+  </div>
+</div>

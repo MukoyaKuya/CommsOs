@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav class="jira-crumb mb-1" aria-label="Breadcrumb"><a href="{% url 'dashboard' %}" class="hover:underline">Campaigns</a> / {% if campaign %}CMP-{{ campaign.plan_revision }} · Edit{% else %}Create{% endif %}</nav>
+<h1 class="jira-h1 mb-4">{% if campaign %}Edit campaign brief{% else %}Create campaign{% endif %}</h1>
+<div class="grid lg:grid-cols-3 gap-4 items-start">
+  <form method="post" class="jira-panel lg:col-span-2">
+    <div class="jira-panel-head"><span class="jira-h2">Issue details</span><span class="lozenge lozenge-todo">Brief</span></div>
+    <div class="jira-panel-body">
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<div class="jira-flag jira-flag-error mb-3"><span class="dot mt-1.5 bg-[#c9372c]"></span><p>{{ error }}</p></div>{% endfor %}
+      {% for field in form %}
+      <div class="jira-field">
+        <label for="{{ field.id_for_label }}" class="jira-label">{{ field.label }}</label>
+        <div class="form-field">{{ field }}</div>
+        {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="flex gap-2 mt-4">
+        <button class="button">Save campaign</button>
+        <a href="{% url 'dashboard' %}" class="btn-default">Cancel</a>
+      </div>
+    </div>
+  </form>
+  <aside class="jira-panel">
+    <div class="jira-panel-head"><span class="jira-h2">Guidance</span></div>
+    <div class="jira-panel-body jira-muted space-y-2">
+      <p>End date must be on or after start date.</p>
+      <p>Strategy generation needs name, objective, audience, dates, and at least one channel.</p>
+      <p>Organization is taken from your membership — never from form input.</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}

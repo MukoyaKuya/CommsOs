@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}{{ campaign.name }} · CommsOS{% endblock %}
+{% block content %}
+<nav class="jira-crumb mb-1" aria-label="Breadcrumb"><a href="{% url 'dashboard' %}" class="hover:underline">Projects</a> / <a href="{% url 'dashboard' %}" class="hover:underline">Comms campaigns</a> / {{ campaign.name|truncatechars:32 }}</nav>
+
+<div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="jira-muted !text-[12px] font-mono">CMP-{{ campaign.plan_revision }} · {{ campaign.status|upper }}</span>
+      <span class="lozenge {% if campaign.status == 'active' %}lozenge-progress{% elif campaign.status == 'archived' %}lozenge-cancelled{% elif campaign.status == 'paused' %}lozenge-review{% else %}lozenge-todo{% endif %}">{{ campaign.status }}</span>
+      <span class="lozenge lozenge-todo">Rev {{ campaign.plan_revision }}</span>
+    </div>
+    <h1 class="jira-h1 mt-1">{{ campaign.name }}</h1>
+    <p class="jira-muted mt-1">{{ campaign.starts_on }} – {{ campaign.ends_on }}</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'report' campaign.pk %}" class="btn-default">View report</a>
+    {% if can_manage %}<a href="{% url 'campaign_edit' campaign.pk %}" class="btn-default">Edit brief</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4 items-start">
+  <!-- Main column -->
+  <div class="lg:col-span-2 space-y-4 min-w-0">
+
+    <section class="jira-panel" aria-label="Brief">
+      <div class="jira-panel-head"><span class="jira-h2">1 · Brief <span class="jira-muted font-normal">/ Description</span></span>{% if can_manage %}<form method="post" action="{% url 'strategy_generate' campaign.pk %}">{% csrf_token %}<button class="button">Generate strategy</button></form>{% endif %}</div>
+      <div class="jira-panel-body">
+        <dl class="jira-dl">
+          <dt class="jira-dt">Objective</dt><dd>{{ campaign.objective }}</dd>
+          <dt class="jira-dt">Audience</dt><dd>{{ campaign.audience }}</dd>
+          <dt class="jira-dt">Channels</dt><dd>{{ campaign.channels }}</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="jira-panel" aria-label="Strategy">
+      <div class="jira-panel-head"><span class="jira-h2">2 · Strategy</span>{% if strategy %}<span class="flex gap-1.5"><span class="lozenge {% if strategy.status == 'approved' %}lozenge-approved{% elif strategy.status == 'superseded' %}lozenge-stale{% else %}lozenge-review{% endif %}">{{ strategy.status }}</span><span class="lozenge {% if strategy.provenance == 'demo' %}lozenge-demo{% else %}lozenge-ai{% endif %}">{{ strategy.provenance }}</span></span>{% endif %}</div>
+      <div class="jira-panel-body">
+        {% if strategy %}
+        <dl class="jira-dl">
+          <dt class="jira-dt">Objective</dt><dd>{{ strategy.data.objective }}</dd>
+          <dt class="jira-dt">Audience</dt><dd>{{ strategy.data.audience }}</dd>
+          <dt class="jira-dt">Key message</dt><dd>{{ strategy.data.key_message }}</dd>
+          <dt class="jira-dt">Pillars</dt><dd>{{ strategy.data.pillars|join:', ' }}</dd>
+          <dt class="jira-dt">KPIs</dt><dd>{{ strategy.data.kpis|join:', ' }}</dd>
+        </dl>
+        {% if strategy.status == 'draft' and can_manage %}
+        <div class="flex gap-2 mt-4">
+          <a href="{% url 'strategy_edit' campaign.pk %}" class="btn-default">Edit draft</a>
+          <form method="post" action="{% url 'strategy_approve' campaign.pk %}">{% csrf_token %}<button class="button">Approve strategy</button></form>
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="jira-muted">Generate a strategy from the campaign brief to begin review.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="jira-panel" aria-label="Plan and child issues">
+      <div class="jira-panel-head">
+        <span class="jira-h2">3 · Plan <span class="jira-muted font-normal">/ Child issues · {{ items|length }}</span></span>
+        {% if strategy.status == 'approved' and can_manage %}
+        <form method="post" action="{% url 'plan_generate' campaign.pk %}">{% csrf_token %}<button class="btn-default">Generate plan</button></form>
+        {% endif %}
+      </div>
+      {% if proposal %}
+      <div class="mx-4 mt-4 rounded-[3px] border border-[#ffe9a8] bg-[#fffdf4] p-3">
+        <p class="text-[13px] font-semibold">Proposed plan — review before applying</p>
+        {% for item in proposal.items %}<p class="text-[12.5px] text-[#44546f] mt-1 font-mono">{{ item.planned_on }} · {{ item.channel }} · {{ item.title }}</p>{% endfor %}
+        {% if can_manage %}<form method="post" action="{% url 'plan_apply' campaign.pk %}" class="mt-3">{% csrf_token %}<button class="button">Apply plan</button></form>{% endif %}
+      </div>
+      {% endif %}
+      <div class="overflow-x-auto">
+        <table class="jira-table min-w-[560px]">
+          <thead><tr><th>Type</th><th>Summary</th><th>Due</th><th>Status</th><th class="!text-right">Actions</th></tr></thead>
+          <tbody>
+          {% for item in items %}
+            <tr>
+              <td><span class="inline-flex items-center justify-center w-5 h-5 rounded-[3px] bg-[#e9f2ff] text-[#0c66e4] text-[11px] font-bold">S</span></td>
+              <td>
+                <p class="font-medium">{{ item.title }}</p>
+                <p class="jira-muted !text-[12px]">{{ item.planned_on }} · {{ item.channel }} · {{ item.format }} · {{ item.pillar }} · {{ item.provenance }}</p>
+                {% if item.draft %}<pre class="jira-code mt-2">{{ item.draft }}</pre>{% endif %}
+              </td>
+              <td class="whitespace-nowrap text-[#44546f]">{{ item.planned_on }}</td>
+              <td><span class="lozenge lozenge-todo">To do</span></td>
+              <td class="!text-right whitespace-nowrap">
+                {% if can_manage %}
+                <form method="post" action="{% url 'content_generate' campaign.pk item.pk %}" class="inline">{% csrf_token %}<button class="btn-subtle">Generate copy</button></form>
+                <a class="jira-link ml-2" href="{% url 'content_edit' campaign.pk item.pk %}">Edit</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="px-4 py-6 text-center jira-muted">No planned items yet. Generate and apply a plan.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="jira-panel" aria-label="Performance">
+      <div class="jira-panel-head"><span class="jira-h2">4 · Performance <span class="jira-muted font-normal">/ Metrics</span></span></div>
+      <div class="jira-panel-body">
+        {% if can_manage %}
+        <form method="post" action="{% url 'observation_add' campaign.pk %}" class="rounded-[3px] border border-[#dfe1e6] bg-[#fafbfc] p-3 mb-4">
+          {% csrf_token %}
+          <p class="text-[12px] font-semibold mb-2">Log observation</p>
+          <div class="grid sm:grid-cols-2 gap-2">
+            {% for field in observation_form %}
+            <label class="block text-[12.5px]">{{ field.label }}<span class="form-field">{{ field }}</span></label>
+            {% endfor %}
+          </div>
+          <button class="button mt-2">Add observation</button>
+        </form>
+        {% endif %}
+        {% if evidence %}
+        <p class="jira-muted !text-[12px] mb-2">{{ evidence.period_start }} – {{ evidence.period_end }} · Sources: {{ evidence.sources|join:', ' }}</p>
+        <table class="jira-table">
+          <thead><tr><th>Channel / format</th><th class="!text-right">Rate</th><th class="!text-right">Sample</th></tr></thead>
+          <tbody>
+          {% for row in evidence.groups %}
+            <tr>
+              <td class="font-medium">{{ row.name }}</td>
+              <td class="!text-right tabular-nums"><strong>{{ row.rate }}%</strong></td>
+              <td class="!text-right jira-muted tabular-nums">{{ row.engagements }} / {{ row.impressions }} · {{ row.count }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="jira-muted">Add at least two comparable groups with positive impressions to analyze performance.</p>
+        {% endif %}
+        <div id="observations" class="mt-4">
+          <p class="text-[12px] font-semibold text-[#44546f] mb-1">Source observations · {{ observations|length }}</p>
+          {% for observation in observations %}
+          <p id="observation-{{ observation.pk }}" class="text-[12px] font-mono text-[#44546f] border-t border-[#f1f2f4] py-1.5">{{ observation.observed_on }} · {{ observation.channel }} / {{ observation.format }} · {{ observation.engagements|default_if_none:'—' }} eng / {{ observation.impressions|default_if_none:'—' }} impr · {{ observation.source }}</p>
+          {% empty %}<p class="jira-muted">No observations yet.</p>{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="jira-panel" aria-label="Intelligence">
+      <div class="jira-panel-head">
+        <span class="jira-h2">5 · Intelligence <span class="jira-muted font-normal">/ Activity</span></span>
+        {% if can_manage %}<form method="post" action="{% url 'insight_generate' campaign.pk %}">{% csrf_token %}<button class="button">Analyze performance</button></form>{% endif %}
+      </div>
+      <div class="jira-panel-body space-y-3">
+        {% if insight %}
+        <div class="flex gap-2.5">
+          <span class="avatar !bg-[#1f8455]">A</span>
+          <div><p class="jira-muted !text-[12px]">Possible explanation · {{ insight.evidence.period_start }} – {{ insight.evidence.period_end }}</p><p class="mt-1">{{ insight.narrative }}</p><a class="jira-link" href="#observations">View source observations</a></div>
+        </div>
+        {% else %}
+        <p class="jira-muted">Run analysis to generate an evidence-linked recommendation.</p>
+        {% endif %}
+        {% if recommendation %}
+        <div class="rounded-[3px] border border-[#ffe9a8] bg-[#fffdf4] p-3">
+          <p class="text-[13px] font-semibold">Proposed change <span class="lozenge lozenge-review ml-1">{{ recommendation.status }}</span></p>
+          {% for change in recommendation.changes %}<p class="text-[13px] mt-1 font-mono">+ {{ change.channel }} {{ change.format }}: {{ change.title }} · {{ change.planned_on }}</p>{% endfor %}
+          {% if can_manage %}<form method="post" action="{% url 'recommendation_apply' campaign.pk %}" class="mt-3">{% csrf_token %}<button class="button">Approve and apply</button></form>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+
+  <!-- Right rail -->
+  <aside class="space-y-4">
+    <section class="jira-panel">
+      <div class="jira-panel-head"><span class="jira-h2">Details</span></div>
+      <div class="jira-panel-body"><dl class="jira-dl">
+        <dt class="jira-dt">Status</dt><dd><span class="lozenge lozenge-todo">{{ campaign.status }}</span></dd>
+        <dt class="jira-dt">Assignee</dt><dd class="flex items-center gap-2"><span class="avatar">{{ user.username|slice:":1"|upper }}</span>{{ user.username }}</dd>
+        <dt class="jira-dt">Dates</dt><dd class="tabular-nums">{{ campaign.starts_on }} → {{ campaign.ends_on }}</dd>
+        <dt class="jira-dt">Revision</dt><dd class="tabular-nums">{{ campaign.plan_revision }}</dd>
+        <dt class="jira-dt">Channels</dt><dd>{{ campaign.channels }}</dd>
+        <dt class="jira-dt">Audience</dt><dd>{{ campaign.audience|truncatechars:80 }}</dd>
+      </dl></div>
+    </section>
+    <section class="jira-panel">
+      <div class="jira-panel-head"><span class="jira-h2">Tasks <span class="jira-muted font-normal">· {{ tasks|length }}</span></span></div>
+      <div>{% for task in tasks %}<div class="jira-row !items-center"><span class="inline-flex items-center justify-center w-4 h-4 rounded-[3px] border border-[#8b95a5] text-[10px] text-transparent">✓</span><div class="min-w-0"><p class="text-[13px] font-medium truncate">{{ task.title }}</p><p class="jira-muted !text-[12px]">Due {{ task.due_on }} · {{ task.status }}</p></div></div>{% empty %}<p class="p-4 jira-muted">No tasks yet.</p>{% endfor %}</div>
+    </section>
+    <section class="jira-panel">
+      <div class="jira-panel-head"><span class="jira-h2">Automation</span><span class="lozenge lozenge-todo">Manual</span></div>
+      <div class="jira-panel-body jira-muted"><p>No external publishing in the MVP. Recommendations apply as audited plan revisions.</p></div>
+    </section>
+  </aside>
+</div>
+{% endblock %}
