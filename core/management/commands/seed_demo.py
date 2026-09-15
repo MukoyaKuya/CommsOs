@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from core.models import Organization, Membership, Campaign, Observation
+from accounts.models import StaffProfile
 
 
 class Command(BaseCommand):
@@ -16,16 +17,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         org, _ = Organization.objects.get_or_create(name="CommsOS Demo")
-        for username, role in [
-            ("demo_owner", "owner"),
-            ("demo_manager", "manager"),
-            ("demo_contributor", "contributor"),
-        ]:
+        demo_accounts = [
+            ("demo_owner", Membership.Role.COMMUNICATIONS_MANAGER, "Head of Communications"),
+            ("demo_manager", Membership.Role.COMMUNICATIONS_OFFICER, "Communications Officer"),
+            ("demo_contributor", Membership.Role.SUPPORT_STAFF, "Logistics Support"),
+            ("demo_intern", Membership.Role.INTERN, "Communications Intern"),
+            ("demo_viewer", Membership.Role.VIEWER, "Executive Viewer"),
+        ]
+        for username, role, job_title in demo_accounts:
             user, _ = get_user_model().objects.get_or_create(username=username)
             user.set_password(options["password"])
             user.save()
-            Membership.objects.update_or_create(
+            membership, _ = Membership.objects.update_or_create(
                 organization=org, user=user, defaults={"role": role, "active": True}
+            )
+            StaffProfile.objects.update_or_create(
+                membership=membership,
+                defaults={"department": "Communications", "job_title": job_title},
             )
         start = date.today()
         campaign, _ = Campaign.objects.get_or_create(
@@ -61,6 +69,6 @@ class Command(BaseCommand):
                 )
         self.stdout.write(
             self.style.SUCCESS(
-                f"Demo ready: {campaign.id}. Accounts: demo_owner, demo_manager, demo_contributor."
+                f"Demo ready: {campaign.id}. Accounts: {', '.join(username for username, _role, _title in demo_accounts)}."
             )
         )

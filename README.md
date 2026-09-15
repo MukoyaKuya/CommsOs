@@ -24,7 +24,9 @@ npm run build:css
 python manage.py runserver
 ```
 
-The demo accounts are `demo_owner`, `demo_manager`, and `demo_contributor`, all with the password passed to `seed_demo`. Use a throwaway password and never expose demo credentials in a real deployment. Visit `http://127.0.0.1:8000/`.
+The demo accounts are `demo_owner` (Communications Manager), `demo_manager` (Communications Officer), `demo_contributor` (Support Staff), `demo_intern`, and `demo_viewer`, all with the password passed to `seed_demo`. Each account has one fixed role and belongs to one organization. Use a throwaway password and never expose demo credentials in a real deployment. Visit `http://127.0.0.1:8000/`.
+
+Communications Managers can open **Team Directory** to create a single-use invitation link for a staff member. Links expire after 72 hours and are shown only when created; email delivery is deferred. Set `COMMSOS_DEMO_AUTO_LOGIN=1` only for local demonstrations that intentionally bypass login. It is disabled by default and ignored when `DJANGO_DEBUG=0`.
 
 For PostgreSQL, set `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, and `POSTGRES_PORT` in `.env`, then rerun migrations/seed. Create the database and least-privilege user separately. Do not commit `.env`.
 
