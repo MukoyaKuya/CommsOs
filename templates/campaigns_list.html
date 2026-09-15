@@ -1099,10 +1099,6 @@
                     {% lucide "plus" %}
                     <span>Create campaign</span>
                   </a>
-                  <a href="{% url 'campaigns_seed_samples' %}" class="cm-btn-secondary">
-                    {% lucide "sparkles" %}
-                    <span>Load sample campaigns (10)</span>
-                  </a>
                 </div>
               </div>
             </td>
@@ -1288,18 +1284,6 @@
       {% empty %}
       <p style="font-size: 13px; color: #667085;">No scheduled campaigns found.</p>
       {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  {% if total_campaigns > 0 %}
-  <!-- Reset/Clear Data Demo Utilities -->
-  <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eaecf0; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #98a2b3;">
-    <span>Showing campaigns for <strong>{{ membership.organization.name }}</strong></span>
-    <div style="display: flex; gap: 12px;">
-      <a href="{% url 'campaigns_seed_samples' %}" style="color: #667085; text-decoration: none;">Reload sample dataset</a>
-      <span>·</span>
-      <a href="{% url 'campaigns_clear_samples' %}" style="color: #b42318; text-decoration: none;" onclick="return confirm('Clear all campaigns from this workspace?');">Clear all campaigns</a>
     </div>
   </div>
   {% endif %}
