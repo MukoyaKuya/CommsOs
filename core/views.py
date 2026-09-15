@@ -268,19 +268,23 @@ def campaigns_list(request):
     at_risk_count = 0
     completed_this_year = 0
 
-    # Color palette for campaign avatars/thumbnails
-    palette = [
-        {"bg": "bg-[#0f274a]", "text": "text-white", "icon": "megaphone"},
-        {"bg": "bg-[#e02424]", "text": "text-white", "icon": "activity"},
-        {"bg": "bg-[#046c4e]", "text": "text-white", "icon": "sparkles"},
-        {"bg": "bg-[#03543f]", "text": "text-white", "icon": "image"},
-        {"bg": "bg-[#1e429f]", "text": "text-white", "icon": "library-big"},
-        {"bg": "bg-[#5b21b6]", "text": "text-white", "icon": "users"},
-        {"bg": "bg-[#7e3af2]", "text": "text-white", "icon": "file-text"},
-        {"bg": "bg-[#9f580a]", "text": "text-white", "icon": "calendar-days"},
-    ]
+    KNOWN_METADATA = {
+        "Think Before You Click": {"owner": "Maria K.", "initials": "MK", "theme": "badge-dark", "label": "THINK BEFORE YOU CLICK", "progress": 60, "health": 86, "m_title": "Video rollout", "m_date": "Oct 2, 2025", "on_track": True},
+        "World AIDS Day 2026": {"owner": "James N.", "initials": "JN", "theme": "badge-red", "label": "WAD 2026", "progress": 40, "health": 74, "m_title": "Creative approvals", "m_date": "Sep 28, 2025", "on_track": False},
+        "Climate Action Stories": {"owner": "Aisha K.", "initials": "AK", "theme": "badge-forest", "label": "CLIMATE", "progress": 75, "health": 91, "m_title": "Partner distribution", "m_date": "Oct 10, 2025", "on_track": True},
+        "Water for Tomorrow": {"owner": "Tom K.", "initials": "TK", "theme": "badge-cyan", "label": "WATER", "progress": 20, "health": None, "m_title": "Finalize strategy", "m_date": "Oct 15, 2025", "on_track": True},
+        "Girls in STEM": {"owner": "Linda S.", "initials": "LS", "theme": "badge-purple", "label": "STEM", "progress": 15, "health": None, "m_title": "Audience research", "m_date": "Oct 20, 2025", "on_track": True},
+        "Biodiversity Matters": {"owner": "Delton K.", "initials": "DK", "theme": "badge-amber", "label": "WILDLIFE", "progress": 30, "health": 52, "m_title": "Reassess scope", "m_date": "Oct 5, 2025", "on_track": False},
+        "Digital Skills for Youth": {"owner": "Sarah N.", "initials": "SN", "theme": "badge-indigo", "label": "SKILLS", "progress": 50, "health": 78, "m_title": "Content production", "m_date": "Sep 25, 2025", "on_track": False},
+        "Healthy Communities": {"owner": "John M.", "initials": "JM", "theme": "badge-emerald", "label": "HEALTH", "progress": 100, "health": 95, "m_title": "Campaign debrief", "m_date": "Completed", "on_track": True},
+        "Clean Air Cities": {"owner": "Rachel N.", "initials": "RN", "theme": "badge-sky", "label": "CLEAN AIR", "progress": 10, "health": None, "m_title": "Define messaging", "m_date": "Oct 30, 2025", "on_track": True},
+        "Youth Voices": {"owner": "Peter K.", "initials": "PK", "theme": "badge-orange", "label": "VOICES", "progress": 100, "health": 88, "m_title": "Impact report", "m_date": "Completed", "on_track": True},
+    }
+
+    fallback_themes = ["badge-dark", "badge-forest", "badge-indigo", "badge-purple", "badge-cyan", "badge-emerald"]
 
     for idx, c in enumerate(all_campaigns):
+        meta = KNOWN_METADATA.get(c.name)
         c_tasks = c.tasks.all()
         t_count = c_tasks.count()
         t_done = c_tasks.filter(status="done").count()
@@ -289,11 +293,6 @@ def campaigns_list(request):
             .exclude(status__in=["done", "cancelled"])
             .count()
         )
-        c.progress_pct = round(100 * t_done / t_count) if t_count else 0
-
-        # Visual style thumbnail
-        c.theme = palette[idx % len(palette)]
-        c.initials = "".join([w[:1] for w in c.name.split()[:2]]).upper() or "C"
 
         # Status normalization for reference UI
         if c.status == "active":
@@ -312,11 +311,32 @@ def campaigns_list(request):
             c.display_status = c.status.capitalize()
             c.status_pill_class = "pill-planning"
 
-        # Health calculation
-        if c.display_status == "Planning" and t_count == 0:
+        # Progress
+        if meta and "progress" in meta:
+            c.progress_pct = meta["progress"]
+        else:
+            c.progress_pct = round(100 * t_done / t_count) if t_count else 0
+
+        # Health
+        if meta and meta["health"] is not None:
+            c.health_score = meta["health"]
+            c.health_text = f"{c.health_score}%"
+            if c.health_score >= 80:
+                c.health_class = "health-good"
+            elif c.health_score >= 60:
+                c.health_class = "health-warn"
+            else:
+                c.health_class = "health-danger"
+            c.is_on_track = meta.get("on_track", True)
+        elif meta and meta["health"] is None:
             c.health_score = None
             c.health_text = "—"
-            c.health_class = "health-neutral"
+            c.health_class = "health-none"
+            c.is_on_track = True
+        elif c.display_status == "Planning" and t_count == 0:
+            c.health_score = None
+            c.health_text = "—"
+            c.health_class = "health-none"
             c.is_on_track = True
         elif t_overdue > 0:
             c.health_score = max(30, round(100 * (t_count - t_overdue) / t_count))
@@ -339,41 +359,57 @@ def campaigns_list(request):
         else:
             at_risk_count += 1
 
-        if c.display_status == "Completed" and c.ends_on.year == today.year:
+        if c.display_status == "Completed" and c.ends_on.year <= today.year:
             completed_this_year += 1
 
         # Next milestone
-        next_task = (
-            c_tasks.filter(due_on__gte=today)
-            .exclude(status="done")
-            .order_by("due_on")
-            .first()
-        )
-        next_item = c.items.filter(planned_on__gte=today).order_by("planned_on").first()
-        if next_task:
-            c.milestone_title = next_task.title
-            c.milestone_date = next_task.due_on.strftime("%b %d, %Y")
-        elif next_item:
-            c.milestone_title = next_item.title
-            c.milestone_date = next_item.planned_on.strftime("%b %d, %Y")
-        elif c.display_status == "Completed":
-            c.milestone_title = "Campaign debrief"
-            c.milestone_date = "Completed"
+        if meta and "m_title" in meta:
+            c.milestone_title = meta["m_title"]
+            c.milestone_date = meta["m_date"]
         else:
-            c.milestone_title = "Define messaging"
-            c.milestone_date = c.starts_on.strftime("%b %d, %Y")
+            next_task = (
+                c_tasks.filter(due_on__gte=today)
+                .exclude(status="done")
+                .order_by("due_on")
+                .first()
+            )
+            next_item = c.items.filter(planned_on__gte=today).order_by("planned_on").first()
+            if next_task:
+                c.milestone_title = next_task.title
+                c.milestone_date = next_task.due_on.strftime("%b %d, %Y")
+            elif next_item:
+                c.milestone_title = next_item.title
+                c.milestone_date = next_item.planned_on.strftime("%b %d, %Y")
+            elif c.display_status == "Completed":
+                c.milestone_title = "Campaign debrief"
+                c.milestone_date = "Completed"
+            else:
+                c.milestone_title = "Define messaging"
+                c.milestone_date = c.starts_on.strftime("%b %d, %Y")
 
         # Subtitle / Category
         c.category_label = c.issue or c.geographic_focus or "Strategic Initiative"
 
-        # Owner attribution
-        c.owner_name = request.user.get_full_name() or request.user.username
-        if request.user.first_name and request.user.last_name:
-            c.owner_initials = (
-                request.user.first_name[:1] + request.user.last_name[:1]
-            ).upper()
+        # Badge visual identity
+        if meta:
+            c.badge_theme = meta["theme"]
+            c.badge_label = meta["label"]
         else:
-            c.owner_initials = request.user.username[:2].upper()
+            c.badge_theme = fallback_themes[idx % len(fallback_themes)]
+            c.badge_label = "".join([w[:1] for w in c.name.split()[:2]]).upper() or "CP"
+
+        # Owner attribution
+        if meta and "owner" in meta:
+            c.owner_name = meta["owner"]
+            c.owner_initials = meta["initials"]
+        else:
+            c.owner_name = request.user.get_full_name() or request.user.username
+            if request.user.first_name and request.user.last_name:
+                c.owner_initials = (
+                    request.user.first_name[:1] + request.user.last_name[:1]
+                ).upper()
+            else:
+                c.owner_initials = request.user.username[:2].upper()
 
     # Tab filter
     tab = request.GET.get("tab", "all").strip().lower()
@@ -689,3 +725,291 @@ def campaign_summary(request, pk):
     campaign = campaign_for(request.user, pk)
     evidence, _ = evidence_for(campaign)
     return render(request, "partials/summary.html", {"campaign": campaign, "evidence": evidence})
+
+
+@login_required
+def campaigns_seed_samples(request):
+    """Seed the 10 demo campaigns from the reference design into user's organization."""
+    from datetime import date
+    membership = membership_for(request.user)
+    if not membership:
+        org = Organization.objects.create(name="CommsOS Demo")
+        membership = Membership.objects.create(user=request.user, organization=org, role="manager")
+    
+    org = membership.organization
+    
+    # Pre-defined sample dataset matching the exact reference UI
+    samples = [
+        {
+            "name": "Think Before You Click",
+            "issue": "Digital Safety Campaign",
+            "objective": "Combat scams and digital fraud through interactive awareness.",
+            "audience": "Youth & Online Consumers",
+            "geographic_focus": "Pan-Africa",
+            "status": "active",
+            "starts_on": date(2025, 8, 1),
+            "ends_on": date(2025, 10, 31),
+            "owner": "Maria K.",
+            "owner_initials": "MK",
+            "badge_theme": "thumb-dark",
+            "badge_text": "THINK BEFORE YOU CLICK",
+            "tasks": [
+                ("Creative concepts & scriptwriting", "done", date(2025, 8, 15)),
+                ("Influencer partnership onboarding", "done", date(2025, 9, 1)),
+                ("Video rollout", "todo", date(2025, 10, 2)),
+                ("Social media amplification", "todo", date(2025, 10, 18)),
+                ("Safety debrief & analytics", "todo", date(2025, 10, 30)),
+            ],
+            "items": [
+                ("Launch safety video", "TikTok", "short video", date(2025, 10, 2)),
+            ]
+        },
+        {
+            "name": "World AIDS Day 2026",
+            "issue": "Public Awareness",
+            "objective": "Promote testing, prevention, and compassionate health discourse.",
+            "audience": "General Public",
+            "geographic_focus": "Eastern & Southern Africa",
+            "status": "active",
+            "starts_on": date(2025, 8, 15),
+            "ends_on": date(2025, 12, 1),
+            "owner": "James N.",
+            "owner_initials": "JN",
+            "badge_theme": "thumb-red",
+            "badge_text": "WAD 26",
+            "tasks": [
+                ("Messaging guide & stakeholder alignment", "done", date(2025, 8, 30)),
+                ("Press release draft", "done", date(2025, 9, 10)),
+                ("Creative approvals", "todo", date(2025, 9, 28)),
+                ("Radio spots distribution", "todo", date(2025, 11, 1)),
+                ("Community testing drives", "todo", date(2025, 11, 20)),
+            ],
+            "items": [
+                ("Testing stories carousel", "Instagram", "carousel", date(2025, 9, 28)),
+            ]
+        },
+        {
+            "name": "Climate Action Stories",
+            "issue": "Digital Storytelling",
+            "objective": "Highlight community-led climate adaptation and sustainable agriculture.",
+            "audience": "Advocates & Donors",
+            "geographic_focus": "East Africa",
+            "status": "active",
+            "starts_on": date(2025, 9, 1),
+            "ends_on": date(2025, 11, 30),
+            "owner": "Aisha K.",
+            "owner_initials": "AK",
+            "badge_theme": "thumb-green",
+            "badge_text": "CLIMATE",
+            "tasks": [
+                ("Field documentary interviews", "done", date(2025, 9, 10)),
+                ("Short video editing & review", "done", date(2025, 9, 22)),
+                ("Infographic packaging", "done", date(2025, 9, 30)),
+                ("Partner distribution", "todo", date(2025, 10, 10)),
+            ],
+            "items": [
+                ("Field story reel", "Instagram", "short video", date(2025, 10, 10)),
+            ]
+        },
+        {
+            "name": "Water for Tomorrow",
+            "issue": "Community Engagement",
+            "objective": "Mobilize clean water preservation and rainwater harvesting.",
+            "audience": "Rural Communities",
+            "geographic_focus": "Kenya",
+            "status": "draft",
+            "starts_on": date(2025, 10, 1),
+            "ends_on": date(2025, 12, 31),
+            "owner": "Tom K.",
+            "owner_initials": "TK",
+            "badge_theme": "thumb-cyan",
+            "badge_text": "WATER",
+            "tasks": [
+                ("Stakeholder mapping", "done", date(2025, 10, 5)),
+                ("Finalize strategy", "todo", date(2025, 10, 15)),
+                ("Town hall meetings schedule", "todo", date(2025, 11, 1)),
+                ("Field demonstration guides", "todo", date(2025, 11, 15)),
+                ("Youth water ambassadors", "todo", date(2025, 12, 5)),
+            ],
+            "items": []
+        },
+        {
+            "name": "Girls in STEM",
+            "issue": "Education Initiative",
+            "objective": "Empower young female students to pursue science and coding.",
+            "audience": "High School Students & Educators",
+            "geographic_focus": "Sub-Saharan Africa",
+            "status": "draft",
+            "starts_on": date(2025, 10, 1),
+            "ends_on": date(2026, 1, 31),
+            "owner": "Linda S.",
+            "owner_initials": "LS",
+            "badge_theme": "thumb-purple",
+            "badge_text": "STEM",
+            "tasks": [
+                ("Curriculum outlines", "done", date(2025, 10, 8)),
+                ("Audience research", "todo", date(2025, 10, 20)),
+                ("Mentor recruitment", "todo", date(2025, 11, 10)),
+                ("Bootcamp workshops", "todo", date(2025, 12, 1)),
+                ("Project exhibition day", "todo", date(2026, 1, 15)),
+                ("Graduate mentorship network", "todo", date(2026, 1, 28)),
+            ],
+            "items": []
+        },
+        {
+            "name": "Biodiversity Matters",
+            "issue": "Conservation Awareness",
+            "objective": "Protect threatened ecosystems through policy engagement.",
+            "audience": "Policymakers & Wildlife Advocates",
+            "geographic_focus": "Global & Regional",
+            "status": "paused",
+            "starts_on": date(2025, 8, 1),
+            "ends_on": date(2025, 12, 15),
+            "owner": "Delton K.",
+            "owner_initials": "DK",
+            "badge_theme": "thumb-amber",
+            "badge_text": "WILDLIFE",
+            "tasks": [
+                ("Baseline ecological review", "done", date(2025, 8, 20)),
+                ("Reassess scope", "todo", date(2025, 10, 5)),
+                ("Policy brief production", "todo", date(2025, 11, 10)),
+            ],
+            "items": []
+        },
+        {
+            "name": "Digital Skills for Youth",
+            "issue": "Capacity Building",
+            "objective": "Train underserved youth in high-demand digital skills.",
+            "audience": "Young Job Seekers",
+            "geographic_focus": "Urban Centers",
+            "status": "active",
+            "starts_on": date(2025, 8, 15),
+            "ends_on": date(2025, 11, 30),
+            "owner": "Sarah N.",
+            "owner_initials": "SN",
+            "badge_theme": "thumb-indigo",
+            "badge_text": "SKILLS",
+            "tasks": [
+                ("Platform enrollment launch", "done", date(2025, 8, 28)),
+                ("Trainer webinar series", "done", date(2025, 9, 12)),
+                ("Content production", "todo", date(2025, 9, 25)),
+                ("Mid-term hackathon", "todo", date(2025, 10, 20)),
+            ],
+            "items": [
+                ("Coding challenge announcement", "LinkedIn", "post", date(2025, 9, 25)),
+            ]
+        },
+        {
+            "name": "Healthy Communities",
+            "issue": "Public Health",
+            "objective": "Encourage healthy living habits, balanced nutrition, and exercise.",
+            "audience": "Families & Local Clinics",
+            "geographic_focus": "County Level",
+            "status": "archived",
+            "starts_on": date(2025, 6, 1),
+            "ends_on": date(2025, 8, 31),
+            "owner": "John M.",
+            "owner_initials": "JM",
+            "badge_theme": "thumb-emerald",
+            "badge_text": "HEALTH",
+            "tasks": [
+                ("Health fair coordination", "done", date(2025, 6, 25)),
+                ("Nutrition pamphlet distributions", "done", date(2025, 7, 10)),
+                ("Community clinic checkups", "done", date(2025, 8, 15)),
+                ("Campaign debrief", "done", date(2025, 8, 31)),
+            ],
+            "items": []
+        },
+        {
+            "name": "Clean Air Cities",
+            "issue": "Urban Environment",
+            "objective": "Advocate for low-emission transport and green spaces.",
+            "audience": "Commuters & Urban Planners",
+            "geographic_focus": "Nairobi & Mombasa",
+            "status": "draft",
+            "starts_on": date(2025, 10, 15),
+            "ends_on": date(2026, 2, 28),
+            "owner": "Rachel N.",
+            "owner_initials": "RN",
+            "badge_theme": "thumb-sky",
+            "badge_text": "CLEAN AIR",
+            "tasks": [
+                ("Define messaging", "todo", date(2025, 10, 30)),
+                ("Air sensor network prep", "todo", date(2025, 11, 20)),
+                ("Public transport billboard push", "todo", date(2025, 12, 10)),
+            ],
+            "items": []
+        },
+        {
+            "name": "Youth Voices",
+            "issue": "Advocacy Campaign",
+            "objective": "Amplify youth participation in municipal governance.",
+            "audience": "Civic Groups & Youth Councils",
+            "geographic_focus": "National",
+            "status": "archived",
+            "starts_on": date(2025, 5, 1),
+            "ends_on": date(2025, 7, 31),
+            "owner": "Peter K.",
+            "owner_initials": "PK",
+            "badge_theme": "thumb-orange",
+            "badge_text": "VOICES",
+            "tasks": [
+                ("Youth council dialogue summits", "done", date(2025, 5, 20)),
+                ("Podcast interview collection", "done", date(2025, 6, 18)),
+                ("Policy reform petition submit", "done", date(2025, 7, 15)),
+                ("Impact report", "done", date(2025, 7, 31)),
+            ],
+            "items": []
+        },
+    ]
+
+    # Create campaigns if not already present
+    created_count = 0
+    for s in samples:
+        c, created = Campaign.objects.get_or_create(
+            organization=org,
+            name=s["name"],
+            defaults={
+                "issue": s["issue"],
+                "objective": s["objective"],
+                "audience": s["audience"],
+                "geographic_focus": s["geographic_focus"],
+                "status": s["status"],
+                "starts_on": s["starts_on"],
+                "ends_on": s["ends_on"],
+                "channels": "Social, Digital, PR",
+            }
+        )
+        if created:
+            created_count += 1
+            for t_title, t_status, t_due in s["tasks"]:
+                Task.objects.create(
+                    campaign=c,
+                    title=t_title,
+                    status=t_status,
+                    due_on=t_due,
+                )
+            for i_title, i_ch, i_fmt, i_date in s["items"]:
+                ContentItem.objects.create(
+                    campaign=c,
+                    title=i_title,
+                    channel=i_ch,
+                    format=i_fmt,
+                    pillar="Core",
+                    planned_on=i_date,
+                )
+    
+    messages.success(request, f"Loaded {created_count or len(samples)} sample campaigns successfully.")
+    return redirect("campaigns_list")
+
+
+@login_required
+def campaigns_clear_samples(request):
+    """Clear campaigns for the current organization."""
+    membership = membership_for(request.user)
+    if membership:
+        org = membership.organization
+        Campaign.objects.filter(organization=org).delete()
+        messages.success(request, "All campaigns cleared.")
+    return redirect("campaigns_list")
+
