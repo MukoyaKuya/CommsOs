@@ -1,10 +1,209 @@
 {% load static lucide %}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}CommsOS{% endblock %}</title><link rel="stylesheet" href="{% static 'css/app.css' %}"><script defer src="{% static 'js/htmx.min.js' %}"></script><script defer src="{% static 'js/alpine.min.js' %}"></script></head>
-<body class="min-h-screen text-[#111827] text-[14px]">
-{% if user.is_authenticated %}<div class="app-shell">
-<aside class="app-sidebar"><a href="{% url 'dashboard' %}" class="brand-mark"><span class="brand-orbit">C</span><span>CommsOS</span></a><button class="workspace-switcher" type="button"><span class="workspace-icon">{% lucide "house" %}</span><span>{{ membership.organization.name|default:'Workspace' }}</span>{% lucide "chevron-down" %}</button>
-<nav class="side-links"><a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">{% lucide "house" %}<span>Overview</span></a><a href="{% url 'campaigns_list' %}" class="{% if request.resolver_match.url_name == 'campaigns_list' or request.resolver_match.url_name == 'campaign_create' %}active{% endif %}">{% lucide "megaphone" %}<span>Campaigns</span></a><a href="{% url 'dashboard' %}">{% lucide "file-text" %}<span>Content</span></a><a href="{% url 'calendar_view' %}" class="{% if request.resolver_match.url_name == 'calendar_view' %}active{% endif %}">{% lucide "calendar-days" %}<span>Calendar</span></a><a href="{% url 'dashboard' %}">{% lucide "list-checks" %}<span>Tasks</span></a><a href="{% url 'dashboard' %}">{% lucide "chart-no-axes-combined" %}<span>Intelligence</span></a><a href="{% url 'dashboard' %}">{% lucide "chart-column-big" %}<span>Reports</span></a></nav>
-<p class="side-label">Workspace</p><nav class="side-links secondary"><a href="#">{% lucide "users" %}<span>Team</span></a><a href="#">{% lucide "image" %}<span>Assets</span></a><a href="#">{% lucide "file-text" %}<span>Templates</span></a><a href="#">{% lucide "library-big" %}<span>Knowledge</span></a></nav>
-<div class="sidebar-bottom"><a href="#">{% lucide "settings" %}<span>Settings</span></a><a href="#">{% lucide "circle-help" %}<span>Help</span></a><div class="profile-row"><span class="avatar">{{ user.username|slice:':1'|upper }}</span><span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ membership.get_role_display|default:'Member' }}</small></span><form method="post" action="{% url 'logout' %}" class="ml-auto">{% csrf_token %}<button title="Log out" aria-label="Log out">{% lucide "chevron-right" %}</button></form></div></div></aside>
-<div class="app-workspace"><header class="workspace-topbar"><label class="top-search">{% lucide "search" %}<input type="search" placeholder="Search campaigns, content, tasks..."><kbd>⌘ K</kbd></label><button class="icon-button" aria-label="Notifications">{% lucide "bell" %}<i></i></button><button class="ask-button">{% lucide "sparkles" %}<span>Ask CommsOS</span></button><span class="avatar light">{{ user.username|slice:':1'|upper }}</span></header><main class="workspace-main">{% if messages %}<div class="message-stack">{% for message in messages %}<div class="jira-flag {% if message.tags == 'error' %}jira-flag-error{% else %}jira-flag-success{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main></div></div>
-{% else %}<main class="px-4 py-10">{% block auth_content %}{% endblock %}</main>{% endif %}</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CommsOS{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/kargul_theme.css' %}">
+  <script defer src="{% static 'js/htmx.min.js' %}"></script>
+  <script defer src="{% static 'js/alpine.min.js' %}"></script>
+</head>
+<body class="kargul-body">
+{% if user.is_authenticated %}
+<div class="kargul-shell">
+  <!-- Kargul Obsidian Sidebar -->
+  <aside class="kargul-sidebar">
+    <!-- Brand / Workspace Header -->
+    <div class="kargul-sidebar-header">
+      <div class="kargul-brand-mark">
+        <span>C</span>
+      </div>
+      <div style="min-width: 0; flex: 1;">
+        <div style="font-size: 13.5px; font-weight: 600; color: #f9fbff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em;">
+          CommsOS
+        </div>
+        <div style="font-size: 11px; color: #7f7f7f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          {{ membership.organization.name|default:'Strategic Operations' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable Navigation -->
+    <div class="kargul-sidebar-nav-scroll">
+      <!-- Main Core Navigation -->
+      <div class="kargul-nav-section">
+        <a href="{% url 'dashboard' %}" class="kargul-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          {% lucide "house" %}
+          <span>Overview</span>
+        </a>
+        <a href="{% url 'campaigns_list' %}" class="kargul-nav-item {% if request.resolver_match.url_name == 'campaigns_list' or request.resolver_match.url_name == 'campaign_create' %}active{% endif %}">
+          {% lucide "megaphone" %}
+          <span>Campaigns</span>
+          {% if campaigns_count %}
+            <span class="kargul-chip">{{ campaigns_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'calendar_view' %}" class="kargul-nav-item {% if request.resolver_match.url_name == 'calendar_view' or request.resolver_match.url_name == 'calendar_event_create' %}active{% endif %}">
+          {% lucide "calendar" %}
+          <span>Calendar</span>
+          {% if events_count %}
+            <span class="kargul-chip">{{ events_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'dashboard' %}" class="kargul-nav-item">
+          {% lucide "file-text" %}
+          <span>Content Pipeline</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="kargul-nav-item">
+          {% lucide "check-square" %}
+          <span>Tasks & Actions</span>
+        </a>
+      </div>
+
+      <!-- Channels Category with Kargul colored dots -->
+      <div class="kargul-nav-section">
+        <span class="kargul-eyebrow">Channels</span>
+        <a href="{% url 'campaigns_list' %}?channel=press" class="kargul-nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0"><circle cx="7" cy="7" r="4" fill="#FFDB4B"></circle></svg>
+          <span>Press & Media</span>
+        </a>
+        <a href="{% url 'campaigns_list' %}?channel=social" class="kargul-nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0"><circle cx="7" cy="7" r="4" fill="#FE4A8E"></circle></svg>
+          <span>Social & Digital</span>
+        </a>
+        <a href="{% url 'campaigns_list' %}?channel=internal" class="kargul-nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0"><circle cx="7" cy="7" r="4" fill="#9668FE"></circle></svg>
+          <span>Internal Comms</span>
+        </a>
+        <a href="{% url 'campaigns_list' %}?channel=ir" class="kargul-nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0"><circle cx="7" cy="7" r="4" fill="#16C89E"></circle></svg>
+          <span>Investor Relations</span>
+        </a>
+      </div>
+
+      <!-- Workspace Management Section -->
+      <div class="kargul-nav-section">
+        <span class="kargul-eyebrow">Workspace</span>
+        <a href="#" class="kargul-nav-item">
+          {% lucide "users" %}
+          <span>Team Directory</span>
+        </a>
+        <a href="#" class="kargul-nav-item">
+          {% lucide "layers" %}
+          <span>Brand Assets</span>
+        </a>
+        <a href="#" class="kargul-nav-item">
+          {% lucide "book-open" %}
+          <span>Comms Playbooks</span>
+        </a>
+      </div>
+
+      <!-- System Utilities -->
+      <div class="kargul-nav-section" style="border-bottom: none;">
+        <a href="#" class="kargul-nav-item">
+          {% lucide "user-plus" %}
+          <span>Invite teammates</span>
+        </a>
+        <a href="#" class="kargul-nav-item">
+          {% lucide "help-circle" %}
+          <span>Documentation</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Trial / Subscription Banner -->
+    <div style="padding: 12px 14px; border-top: 1px solid var(--sidebar-border); background: var(--sidebar-accent); display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 12px; font-weight: 600; color: #f9fbff;">Enterprise Pro</div>
+        <div style="font-size: 10.5px; color: #7f7f7f;">Active Subscription</div>
+      </div>
+      <span class="kargul-badge kargul-badge-green" style="font-size: 10px; padding: 2px 6px;">Live</span>
+    </div>
+
+    <!-- User Profile & Session Footer -->
+    <div class="kargul-sidebar-footer">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <div class="kargul-user-avatar">
+          {{ user.username|slice:':1'|upper }}
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-size: 12px; font-weight: 600; color: #f9fbff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            {{ user.get_full_name|default:user.username }}
+          </div>
+          <div style="font-size: 10.5px; color: #7f7f7f; text-transform: capitalize;">
+            {{ membership.role|default:'Strategist' }}
+          </div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" title="Sign out" style="background: none; border: none; color: #7f7f7f; cursor: pointer; display: flex; align-items: center; padding: 4px; border-radius: 4px;" onmouseover="this.style.color='#f9fbff'" onmouseout="this.style.color='#7f7f7f'">
+          {% lucide "log-out" %}
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Right Main Application Canvas -->
+  <div class="kargul-main">
+    <!-- Top Utility Bar -->
+    <header class="kargul-topbar">
+      <div class="kargul-topbar-left">
+        <h1 class="kargul-topbar-title">{% block page_title %}CommsOS{% endblock %}</h1>
+        <span class="kargul-status-pill">
+          <span class="kargul-status-dot"></span>
+          Active
+        </span>
+      </div>
+
+      <div class="kargul-topbar-right">
+        <!-- Global Search Segment -->
+        <button type="button" class="kargul-btn kargul-btn-secondary" style="height: 30px; padding: 0 10px; gap: 8px; color: #7f7f7f;" onclick="const s = prompt('Quick find campaigns, deliverables, media contacts:'); if(s) window.location.href='{% url 'campaigns_list' %}?q=' + encodeURIComponent(s);">
+          {% lucide "search" %}
+          <span style="font-size: 11.5px; color: #a4a4a4;">Search CommsOS...</span>
+          <kbd style="font-size: 9.5px; font-family: inherit; background: #2a2a2a; border: 1px solid #363636; border-radius: 4px; padding: 1px 4px; color: #7f7f7f;">⌘K</kbd>
+        </button>
+
+        <!-- Notification Bell Pill -->
+        <button type="button" class="kargul-btn kargul-btn-secondary kargul-btn-icon" style="position: relative;" aria-label="Notifications">
+          {% lucide "bell" %}
+          <span style="position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px #1e1e1e;"></span>
+        </button>
+
+        <!-- User Profile Pill -->
+        <div class="kargul-user-pill">
+          <div class="kargul-user-avatar" style="width: 18px; height: 18px; font-size: 9.5px;">
+            {{ user.username|slice:':1'|upper }}
+          </div>
+          <span style="font-size: 11.5px;">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+      </div>
+    </header>
+
+    {% block subheader %}{% endblock %}
+
+    <!-- Scrollable Content Pane -->
+    <div class="kargul-scroll-content">
+      {% if messages %}
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+          {% for message in messages %}
+            <div style="background: #1b1d20; border: 1px solid {% if message.tags == 'error' %}var(--danger){% else %}var(--status){% endif %}; border-left-width: 3px; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #f9fbff; display: flex; align-items: center; justify-content: space-between;">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% else %}
+<main style="min-height: 100vh; background: var(--background); display: flex; align-items: center; justify-content: center; padding: 24px;">
+  {% block auth_content %}{% endblock %}
+</main>
+{% endif %}
+</body>
+</html>

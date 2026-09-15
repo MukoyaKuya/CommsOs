@@ -1,1291 +1,349 @@
 {% extends 'base.html' %}
 {% load lucide %}
 {% block title %}Campaigns — CommsOS{% endblock %}
+{% block page_title %}Campaigns Pipeline{% endblock %}
+
+{% block subheader %}
+<!-- Kargul Horizontal Sub-Tab Strip -->
+<div class="kargul-tab-strip">
+  <a href="?tab=all{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}{% if view_mode %}&view={{ view_mode }}{% endif %}" class="kargul-tab-item {% if tab == 'all' %}active{% endif %}">
+    All Campaigns <span style="font-size: 11px; opacity: 0.7; margin-left: 4px;">{{ metrics.total|default:0 }}</span>
+  </a>
+  <a href="?tab=active{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}{% if view_mode %}&view={{ view_mode }}{% endif %}" class="kargul-tab-item {% if tab == 'active' %}active{% endif %}">
+    Active Pipeline <span style="font-size: 11px; opacity: 0.7; margin-left: 4px;">{{ metrics.active|default:0 }}</span>
+  </a>
+  <a href="?tab=draft{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}{% if view_mode %}&view={{ view_mode }}{% endif %}" class="kargul-tab-item {% if tab == 'draft' %}active{% endif %}">
+    Drafts & Planning <span style="font-size: 11px; opacity: 0.7; margin-left: 4px;">{{ metrics.draft|default:0 }}</span>
+  </a>
+  <a href="?tab=completed{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}{% if view_mode %}&view={{ view_mode }}{% endif %}" class="kargul-tab-item {% if tab == 'completed' %}active{% endif %}">
+    Completed <span style="font-size: 11px; opacity: 0.7; margin-left: 4px;">{{ metrics.completed_this_year|default:0 }}</span>
+  </a>
+</div>
+{% endblock %}
 
 {% block content %}
-<style>
-  /* ==========================================================================
-     CommsOS Campaigns Page - Pixel Perfect Design System
-     ========================================================================== */
-  .cm-page {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #101828;
-    max-width: 1360px;
-    margin: 0 auto;
-    padding-bottom: 48px;
-  }
+<div style="max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
 
-  /* Breadcrumbs */
-  .cm-breadcrumb {
-    font-size: 12px;
-    color: #667085;
-    font-weight: 500;
-    margin: 0 0 6px 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .cm-breadcrumb span {
-    color: #d0d5dd;
-  }
+  <!-- 4 Kargul Metric Cards -->
+  <div class="kargul-stat-grid">
+    <div class="kargul-card">
+      <div class="kargul-card-header">
+        <span class="kargul-card-title">Active Campaigns</span>
+        <span class="kargul-stat-trend up">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 8.5L9.5 1.5M9.5 1.5H4.5M9.5 1.5V6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {{ metrics.active|default:0 }} Live
+        </span>
+      </div>
+      <div class="kargul-card-metric">{{ metrics.active|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #7f7f7f;">/ {{ metrics.total|default:0 }} total</span></div>
+      <div style="font-size: 11.5px; color: #7f7f7f;">Across {{ membership.organization.name|default:'all workspace channels' }}</div>
+    </div>
 
-  /* Title & Subtitle */
-  .cm-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #101828;
-    letter-spacing: -0.025em;
-    line-height: 1.2;
-    margin: 0;
-  }
-  .cm-subtitle {
-    font-size: 13.5px;
-    color: #667085;
-    margin: 6px 0 0 0;
-  }
+    <div class="kargul-card">
+      <div class="kargul-card-header">
+        <span class="kargul-card-title">Total Budget</span>
+        <span class="kargul-stat-trend neutral">Committed</span>
+      </div>
+      <div class="kargul-card-metric">{{ metrics.total_budget|default:'$0' }}</div>
+      <div style="font-size: 11.5px; color: #7f7f7f;">{{ metrics.total_spent|default:'$0' }} spent to date</div>
+    </div>
 
-  /* Status Tabs Bar & Action Button */
-  .cm-tabs-bar {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    border-bottom: 1px solid #eaecf0;
-    margin-top: 24px;
-    position: relative;
-  }
-  .cm-tabs {
-    display: flex;
-    gap: 28px;
-    align-items: center;
-    margin-bottom: -1px;
-    overflow-x: auto;
-  }
-  .cm-tab {
-    padding: 10px 2px 12px 2px;
-    font-size: 13.5px;
-    font-weight: 500;
-    color: #667085;
-    text-decoration: none;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-    white-space: nowrap;
-    display: inline-block;
-  }
-  .cm-tab:hover {
-    color: #101828;
-  }
-  .cm-tab.active {
-    color: #0c66e4;
-    font-weight: 600;
-    border-bottom: 2px solid #0c66e4;
-  }
+    <div class="kargul-card">
+      <div class="kargul-card-header">
+        <span class="kargul-card-title">Health Score</span>
+        <span class="kargul-stat-trend {% if metrics.at_risk %}neutral{% else %}up{% endif %}">
+          {% if metrics.at_risk %}{{ metrics.at_risk }} At Risk{% else %}100% Stable{% endif %}
+        </span>
+      </div>
+      <div class="kargul-card-metric">{{ metrics.on_track|default:0 }} <span style="font-size: 13px; font-weight: 400; color: #7f7f7f;">on track</span></div>
+      <div style="font-size: 11.5px; color: #7f7f7f;">Calculated from open tasks & timelines</div>
+    </div>
 
-  /* New Campaign Button */
-  .cm-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #101828;
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.06);
-    transition: background 0.15s;
-    margin-bottom: 8px;
-    white-space: nowrap;
-  }
-  .cm-btn-primary:hover {
-    background: #1f2a37;
-    color: #ffffff;
-  }
-  .cm-btn-primary svg {
-    width: 15px;
-    height: 15px;
-    stroke-width: 2.4;
-  }
-
-  /* 4 Metric Summary Cards */
-  .cm-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 22px;
-  }
-  @media (max-width: 1024px) {
-    .cm-metrics-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 640px) {
-    .cm-metrics-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  .cm-metric-card {
-    background: #ffffff;
-    border: 1px solid #eaecf0;
-    border-radius: 12px;
-    padding: 20px 22px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.02);
-  }
-  .cm-metric-indicator {
-    padding-top: 3px;
-    flex-shrink: 0;
-  }
-  .cm-icon-muted {
-    color: #344054;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cm-icon-muted svg {
-    width: 20px;
-    height: 20px;
-    stroke-width: 1.75;
-  }
-  .cm-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: block;
-    margin-top: 4px;
-  }
-  .cm-dot-green {
-    background: #12b76a;
-  }
-  .cm-dot-amber {
-    background: #f79009;
-  }
-  .cm-metric-body {
-    flex: 1;
-    min-width: 0;
-  }
-  .cm-metric-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #667085;
-    margin: 0;
-  }
-  .cm-metric-val {
-    font-size: 28px;
-    font-weight: 700;
-    color: #101828;
-    line-height: 1.15;
-    margin: 4px 0 6px 0;
-    letter-spacing: -0.02em;
-  }
-  .cm-metric-sub {
-    font-size: 11.5px;
-    color: #667085;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .cm-metric-sub.green {
-    color: #027a48;
-    font-weight: 600;
-  }
-
-  /* Controls & Filters Bar */
-  .cm-controls-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-  }
-  .cm-controls-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    flex: 1;
-  }
-  .cm-search-wrap {
-    position: relative;
-    width: 240px;
-  }
-  .cm-search-wrap svg {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #98a2b3;
-    pointer-events: none;
-    width: 16px;
-    height: 16px;
-  }
-  .cm-search-input {
-    width: 100%;
-    height: 38px;
-    padding: 0 12px 0 34px;
-    background: #ffffff;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 13px;
-    color: #101828;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    box-sizing: border-box;
-  }
-  .cm-search-input::placeholder {
-    color: #98a2b3;
-  }
-  .cm-search-input:focus {
-    border-color: #0c66e4;
-    box-shadow: 0 0 0 3px rgba(12, 102, 228, 0.1);
-  }
-  .cm-select {
-    height: 38px;
-    padding: 0 28px 0 12px;
-    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #344054;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .cm-select:focus {
-    border-color: #0c66e4;
-  }
-
-  /* Right View Mode Controls */
-  .cm-controls-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .cm-view-group {
-    display: inline-flex;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    padding: 2px;
-    gap: 2px;
-    box-sizing: border-box;
-  }
-  .cm-view-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #667085;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.15s;
-  }
-  .cm-view-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-  .cm-view-btn:hover {
-    color: #101828;
-  }
-  .cm-view-btn.active {
-    background: #eff6ff;
-    color: #0c66e4;
-    font-weight: 600;
-  }
-  .cm-more-btn {
-    width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    color: #667085;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-  .cm-more-btn:hover {
-    background: #f9fafb;
-    color: #101828;
-  }
-
-  /* Data Table Box */
-  .cm-table-box {
-    background: #ffffff;
-    border: 1px solid #eaecf0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.02);
-    margin-top: 16px;
-  }
-  .cm-table-scroll {
-    overflow-x: auto;
-  }
-  .cm-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    min-width: 980px;
-  }
-  .cm-table thead th {
-    padding: 12px 16px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #667085;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: #fafbfc;
-    border-bottom: 1px solid #eaecf0;
-  }
-  .cm-table tbody td {
-    padding: 14px 16px;
-    font-size: 13px;
-    color: #344054;
-    border-bottom: 1px solid #f2f4f7;
-    vertical-align: middle;
-  }
-  .cm-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-  .cm-table tbody tr:hover {
-    background-color: #fafbfc;
-  }
-
-  /* Custom Checkbox */
-  .cm-checkbox {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1.5px solid #d0d5dd;
-    cursor: pointer;
-    accent-color: #0c66e4;
-    vertical-align: middle;
-  }
-
-  /* Campaign Identity Column */
-  .cm-campaign-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .cm-thumb {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    flex-shrink: 0;
-    text-align: center;
-    line-height: 1.05;
-    padding: 4px;
-    box-sizing: border-box;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
-  }
-  /* Badges matching reference themes */
-  .badge-dark { background: #111827; color: #ffffff; font-size: 8px; letter-spacing: 0.04em; }
-  .badge-red { background: #fee2e2; color: #dc2626; font-size: 18px; }
-  .badge-forest { background: #064e3b; color: #ecfdf5; font-size: 8.5px; }
-  .badge-cyan { background: #0e7490; color: #ffffff; font-size: 8.5px; }
-  .badge-purple { background: #4c1d95; color: #ede9fe; font-size: 8.5px; }
-  .badge-amber { background: #78350f; color: #fef3c7; font-size: 8.5px; }
-  .badge-indigo { background: #1e1b4b; color: #e0e7ff; font-size: 8.5px; }
-  .badge-emerald { background: #065f46; color: #d1fae5; font-size: 8.5px; }
-  .badge-sky { background: #0369a1; color: #e0f2fe; font-size: 8.5px; }
-  .badge-orange { background: #9a3412; color: #ffedd5; font-size: 8.5px; }
-
-  .cm-name-title {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #101828;
-    text-decoration: none;
-    display: block;
-    line-height: 1.3;
-  }
-  .cm-name-title:hover {
-    color: #0c66e4;
-    text-decoration: underline;
-  }
-  .cm-name-sub {
-    font-size: 11.5px;
-    color: #667085;
-    margin: 2px 0 0 0;
-  }
-
-  /* Status Pill Badges */
-  .pill-active {
-    background: #ecfdf3;
-    color: #027a48;
-    border: 1px solid #abefc6;
-    border-radius: 9999px;
-    padding: 2.5px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .pill-planning {
-    background: #f2f4f7;
-    color: #344054;
-    border: 1px solid #eaecf0;
-    border-radius: 9999px;
-    padding: 2.5px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .pill-onhold {
-    background: #fef3f2;
-    color: #b42318;
-    border: 1px solid #fecdca;
-    border-radius: 9999px;
-    padding: 2.5px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .pill-completed {
-    background: #eff8ff;
-    color: #175cd3;
-    border: 1px solid #b2ddff;
-    border-radius: 9999px;
-    padding: 2.5px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-
-  /* Progress Bar */
-  .cm-progress-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
-  }
-  .cm-bar-outer {
-    width: 86px;
-    height: 5px;
-    border-radius: 9999px;
-    background: #eaecf0;
-    overflow: hidden;
-  }
-  .cm-bar-fill {
-    height: 100%;
-    border-radius: 9999px;
-    background: #2563eb;
-    transition: width 0.3s;
-  }
-  .cm-bar-fill.done {
-    background: #12b76a;
-  }
-  .cm-progress-pct {
-    font-size: 12px;
-    font-weight: 500;
-    color: #475467;
-    min-width: 32px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Health Badges */
-  .health-good {
-    background: #ecfdf3;
-    color: #027a48;
-    border-radius: 9999px;
-    padding: 2.5px 8.5px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .health-warn {
-    background: #fffaeb;
-    color: #b54708;
-    border-radius: 9999px;
-    padding: 2.5px 8.5px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .health-danger {
-    background: #fef3f2;
-    color: #b42318;
-    border-radius: 9999px;
-    padding: 2.5px 8.5px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .health-none {
-    color: #98a2b3;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-block;
-    padding: 0 4px;
-  }
-
-  /* Milestone */
-  .cm-ms-title {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #101828;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 170px;
-  }
-  .cm-ms-date {
-    font-size: 11.5px;
-    color: #667085;
-    margin: 2px 0 0 0;
-  }
-
-  /* Timeline */
-  .cm-timeline-text {
-    font-size: 12px;
-    color: #475467;
-    line-height: 1.35;
-    white-space: nowrap;
-  }
-
-  /* Owner */
-  .cm-owner-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-  }
-  .cm-owner-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #eaecf0;
-    color: #344054;
-    font-size: 10px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #d0d5dd;
-  }
-  .cm-owner-name {
-    font-size: 12.5px;
-    font-weight: 500;
-    color: #344054;
-  }
-
-  /* Row Actions */
-  .cm-action-icon {
-    color: #98a2b3;
-    padding: 4px 6px;
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cm-action-icon:hover {
-    background: #f2f4f7;
-    color: #101828;
-  }
-  .cm-action-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Table Footer / Pagination */
-  .cm-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    font-size: 12px;
-    color: #475467;
-    background: #ffffff;
-    border-top: 1px solid #eaecf0;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .cm-page-nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .cm-page-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: #344054;
-    text-decoration: none;
-    border: 1px solid #d0d5dd;
-    transition: background 0.15s;
-  }
-  .cm-page-num:hover {
-    background: #f2f4f7;
-  }
-  .cm-page-num.active {
-    background: #0c66e4;
-    color: #ffffff;
-    font-weight: 600;
-    border-color: #0c66e4;
-  }
-  .cm-page-arrow {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #344054;
-    text-decoration: none;
-    border: 1px solid #d0d5dd;
-  }
-  .cm-page-arrow.disabled {
-    color: #d0d5dd;
-    border-color: #eaecf0;
-    cursor: not-allowed;
-  }
-
-  /* Empty State */
-  .cm-empty-box {
-    padding: 64px 20px;
-    text-align: center;
-  }
-  .cm-empty-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #eff6ff;
-    color: #2563eb;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-  }
-  .cm-empty-icon svg {
-    width: 22px;
-    height: 22px;
-  }
-  .cm-empty-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #101828;
-    margin: 0;
-  }
-  .cm-empty-text {
-    font-size: 13px;
-    color: #667085;
-    margin: 6px auto 18px auto;
-    max-width: 420px;
-    line-height: 1.45;
-  }
-  .cm-empty-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .cm-btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ffffff;
-    color: #344054;
-    border: 1px solid #d0d5dd;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.05);
-    transition: background 0.15s;
-  }
-  .cm-btn-secondary:hover {
-    background: #f9fafb;
-    color: #101828;
-  }
-
-  /* Board View */
-  .cm-board-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 18px;
-  }
-  @media (max-width: 1024px) {
-    .cm-board-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 640px) {
-    .cm-board-grid { grid-template-columns: 1fr; }
-  }
-  .cm-col {
-    background: #f9fafb;
-    border: 1px solid #eaecf0;
-    border-radius: 12px;
-    padding: 14px;
-  }
-  .cm-col-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #eaecf0;
-    font-size: 13px;
-    font-weight: 700;
-    color: #344054;
-  }
-  .cm-col-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 9999px;
-    background: #eaecf0;
-    color: #475467;
-  }
-  .cm-card {
-    background: #ffffff;
-    border: 1px solid #e4e7ec;
-    border-radius: 8px;
-    padding: 14px;
-    margin-top: 10px;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
-    text-decoration: none;
-    display: block;
-    color: inherit;
-    transition: border-color 0.15s;
-  }
-  .cm-card:hover {
-    border-color: #0c66e4;
-  }
-
-  /* Timeline View */
-  .cm-timeline-box {
-    background: #ffffff;
-    border: 1px solid #eaecf0;
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 18px;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.02);
-  }
-  .cm-tl-row {
-    padding: 14px 0;
-    border-bottom: 1px solid #f2f4f7;
-  }
-  .cm-tl-row:last-child {
-    border-bottom: none;
-  }
-</style>
-
-<div class="cm-page">
-  <!-- Breadcrumbs & Header -->
-  <div>
-    <p class="cm-breadcrumb">
-      <span>Workspace</span>
-      <span>/</span>
-      <span>Campaigns</span>
-    </p>
-    <h1 class="cm-title">Campaigns</h1>
-    <p class="cm-subtitle">Plan, execute and measure campaigns that make an impact.</p>
+    <div class="kargul-card">
+      <div class="kargul-card-header">
+        <span class="kargul-card-title">Completed (YTD)</span>
+        <span class="kargul-stat-trend up">
+          Archived
+        </span>
+      </div>
+      <div class="kargul-card-metric">{{ metrics.completed_this_year|default:0 }}</div>
+      <div style="font-size: 11.5px; color: #7f7f7f;">Successful initiatives closed</div>
+    </div>
   </div>
 
-  <!-- Status Tabs Bar with Inline New Campaign Button -->
-  <div class="cm-tabs-bar">
-    <nav class="cm-tabs" aria-label="Campaign status tabs">
-      <a href="?tab=all{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode != 'list' %}&view={{ view_mode }}{% endif %}"
-         class="cm-tab {% if tab == 'all' %}active{% endif %}">
-        All campaigns
-      </a>
-      <a href="?tab=active{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode != 'list' %}&view={{ view_mode }}{% endif %}"
-         class="cm-tab {% if tab == 'active' %}active{% endif %}">
-        Active
-      </a>
-      <a href="?tab=planning{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode != 'list' %}&view={{ view_mode }}{% endif %}"
-         class="cm-tab {% if tab == 'planning' %}active{% endif %}">
-        Planning
-      </a>
-      <a href="?tab=on_hold{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode != 'list' %}&view={{ view_mode }}{% endif %}"
-         class="cm-tab {% if tab == 'on_hold' %}active{% endif %}">
-        On hold
-      </a>
-      <a href="?tab=completed{% if search_query %}&q={{ search_query }}{% endif %}{% if view_mode != 'list' %}&view={{ view_mode }}{% endif %}"
-         class="cm-tab {% if tab == 'completed' %}active{% endif %}">
-        Completed
-      </a>
-    </nav>
-
-    <!-- Top Right Action -->
-    <a href="{% url 'campaign_create' %}" class="cm-btn-primary">
-      {% lucide "plus" %}
-      <span>New campaign</span>
-    </a>
-  </div>
-
-  <!-- 4 Metric Summary Cards in Single Row -->
-  <div class="cm-metrics-grid">
-    <!-- Total campaigns -->
-    <div class="cm-metric-card">
-      <div class="cm-metric-indicator">
-        <div class="cm-icon-muted">
-          {% lucide "megaphone" %}
+  <!-- Kargul Segmented Filter Toolbar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <!-- Left Segmented Dropdowns -->
+    <div style="display: flex; items-center; flex-wrap: wrap; gap: 8px;">
+      <!-- Search Input Pill -->
+      <form method="get" style="margin: 0; display: inline-flex;">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <input type="hidden" name="view" value="{{ view_mode }}">
+        <div class="kargul-segmented" style="padding: 0 10px; gap: 6px;">
+          {% lucide "search" %}
+          <input type="search" name="q" value="{{ q }}" placeholder="Filter campaigns..." style="background: transparent; border: none; outline: none; font-size: 12px; color: #f9fbff; width: 140px;">
+          {% if q %}
+            <a href="?tab={{ tab }}&view={{ view_mode }}" style="color: #7f7f7f; text-decoration: none; font-size: 11px;">✕</a>
+          {% endif %}
         </div>
-      </div>
-      <div class="cm-metric-body">
-        <p class="cm-metric-label">Total campaigns</p>
-        <div class="cm-metric-val">{{ metrics.total }}</div>
-        <p class="cm-metric-sub">
-          {{ metrics.active }} active · {{ metrics.planning }} planning · {{ metrics.completed }} completed
-        </p>
-      </div>
-    </div>
+      </form>
 
-    <!-- On track -->
-    <div class="cm-metric-card">
-      <div class="cm-metric-indicator">
-        <span class="cm-dot cm-dot-green"></span>
+      <!-- Segmented Sort Dropdown -->
+      <div class="kargul-segmented">
+        <span class="kargul-segmented-label">Sort by</span>
+        <span class="kargul-segmented-divider"></span>
+        <a href="?tab={{ tab }}&view={{ view_mode }}&sort={% if sort == 'name' %}-name{% elif sort == '-name' %}created_at{% else %}name{% endif %}{% if q %}&q={{ q }}{% endif %}" class="kargul-segmented-value" style="text-decoration: none;">
+          {% if sort == 'name' %}Name (A-Z)
+          {% elif sort == '-name' %}Name (Z-A)
+          {% elif sort == 'budget' %}Budget
+          {% elif sort == 'progress' %}Progress
+          {% else %}Recent First{% endif %}
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="m3 4.5 3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
-      <div class="cm-metric-body">
-        <p class="cm-metric-label">On track</p>
-        <div class="cm-metric-val">{{ metrics.on_track_count }}</div>
-        <p class="cm-metric-sub">
-          {{ metrics.on_track_pct }}% of all campaigns
-        </p>
-      </div>
-    </div>
 
-    <!-- At risk -->
-    <div class="cm-metric-card">
-      <div class="cm-metric-indicator">
-        <span class="cm-dot cm-dot-amber"></span>
-      </div>
-      <div class="cm-metric-body">
-        <p class="cm-metric-label">At risk</p>
-        <div class="cm-metric-val">{{ metrics.at_risk_count }}</div>
-        <p class="cm-metric-sub">
-          {{ metrics.at_risk_pct }}% of all campaigns
-        </p>
+      <!-- Segmented Channel Filter -->
+      <div class="kargul-segmented">
+        <span class="kargul-segmented-label">Channel</span>
+        <span class="kargul-segmented-divider"></span>
+        <span class="kargul-segmented-value">
+          <select onchange="window.location.href=this.value" style="background: transparent; border: none; color: #f9fbff; font-size: 12px; outline: none; cursor: pointer; padding-right: 4px;">
+            <option value="?tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" {% if not channel %}selected{% endif %} style="background: #1e1e1e; color: #fff;">All Channels</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=press{% if q %}&q={{ q }}{% endif %}" {% if channel == 'press' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Press & Media</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=social{% if q %}&q={{ q }}{% endif %}" {% if channel == 'social' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Social & Digital</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=internal{% if q %}&q={{ q }}{% endif %}" {% if channel == 'internal' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Internal Comms</option>
+            <option value="?tab={{ tab }}&view={{ view_mode }}&channel=ir{% if q %}&q={{ q }}{% endif %}" {% if channel == 'ir' %}selected{% endif %} style="background: #1e1e1e; color: #fff;">Investor Relations</option>
+          </select>
+        </span>
       </div>
     </div>
 
-    <!-- Completed this year -->
-    <div class="cm-metric-card">
-      <div class="cm-metric-indicator">
-        <div class="cm-icon-muted">
-          {% lucide "flag" %}
-        </div>
-      </div>
-      <div class="cm-metric-body">
-        <p class="cm-metric-label">Completed this year</p>
-        <div class="cm-metric-val">{{ metrics.completed_this_year }}</div>
-        <p class="cm-metric-sub green">
-          {% if metrics.completed_this_year %}+{{ metrics.completed_this_year }} vs last year{% else %}Tracking active{% endif %}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filter & View Controls -->
-  <div class="cm-controls-bar">
-    <form method="get" class="cm-controls-left">
-      <input type="hidden" name="tab" value="{{ tab }}">
-      <input type="hidden" name="view" value="{{ view_mode }}">
-
-      <!-- Search Input -->
-      <div class="cm-search-wrap">
-        {% lucide "search" %}
-        <input type="search" name="q" value="{{ search_query }}"
-               placeholder="Search campaigns..."
-               class="cm-search-input">
-      </div>
-
-      <!-- Status dropdown -->
-      <select name="status" onchange="this.form.submit()" class="cm-select">
-        <option value="">Status ⌵</option>
-        <option value="Active" {% if status_dropdown == 'Active' %}selected{% endif %}>Active</option>
-        <option value="Planning" {% if status_dropdown == 'Planning' %}selected{% endif %}>Planning</option>
-        <option value="On hold" {% if status_dropdown == 'On hold' %}selected{% endif %}>On hold</option>
-        <option value="Completed" {% if status_dropdown == 'Completed' %}selected{% endif %}>Completed</option>
-      </select>
-
-      <!-- Region dropdown -->
-      <select name="region" onchange="this.form.submit()" class="cm-select">
-        <option value="">Region ⌵</option>
-        {% for r in regions %}
-        <option value="{{ r }}" {% if region_filter == r %}selected{% endif %}>{{ r }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Audience dropdown -->
-      <select name="audience" onchange="this.form.submit()" class="cm-select">
-        <option value="">Audience ⌵</option>
-        {% for a in audiences %}
-        <option value="{{ a }}" {% if audience_filter == a %}selected{% endif %}>{{ a|truncatechars:20 }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Owner dropdown -->
-      <select class="cm-select" onchange="this.form.submit()">
-        <option value="">Owner ⌵</option>
-      </select>
-
-      <!-- Tags dropdown -->
-      <select class="cm-select">
-        <option value="">Tags ⌵</option>
-      </select>
-
-      {% if search_query or region_filter or audience_filter or status_dropdown %}
-      <a href="?tab={{ tab }}&view={{ view_mode }}" style="font-size: 12px; color: #0c66e4; text-decoration: none; font-weight: 500; margin-left: 4px;">Clear filters</a>
-      {% endif %}
-    </form>
-
-    <!-- Right Controls: View Switcher and Options -->
-    <div class="cm-controls-right">
-      <div class="cm-view-group">
-        <a href="?tab={{ tab }}&view=list{% if search_query %}&q={{ search_query }}{% endif %}"
-           class="cm-view-btn {% if view_mode == 'list' %}active{% endif %}" title="List view">
+    <!-- Right Controls: View Switcher & Action Button -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <!-- View Toggle -->
+      <div class="kargul-segmented" style="padding: 2px;">
+        <a href="?view=list&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'list' %}background: #2a2a2a; color: #f9fbff; box-shadow: var(--kargul-bevel-shadow);{% else %}color: #7f7f7f;{% endif %}">
           {% lucide "list" %}
           <span>List</span>
         </a>
-        <a href="?tab={{ tab }}&view=board{% if search_query %}&q={{ search_query }}{% endif %}"
-           class="cm-view-btn {% if view_mode == 'board' %}active{% endif %}" title="Board view">
-          {% lucide "columns-3" %}
+        <a href="?view=grid&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'grid' %}background: #2a2a2a; color: #f9fbff; box-shadow: var(--kargul-bevel-shadow);{% else %}color: #7f7f7f;{% endif %}">
+          {% lucide "kanban" %}
           <span>Board</span>
-        </a>
-        <a href="?tab={{ tab }}&view=timeline{% if search_query %}&q={{ search_query }}{% endif %}"
-           class="cm-view-btn {% if view_mode == 'timeline' %}active{% endif %}" title="Timeline view">
-          {% lucide "calendar" %}
-          <span>Timeline</span>
         </a>
       </div>
 
-      <button type="button" class="cm-more-btn" title="More options">
-        {% lucide "ellipsis" %}
-      </button>
+      <!-- New Campaign Button -->
+      {% if membership.role == 'owner' or membership.role == 'manager' %}
+        <a href="{% url 'campaign_create' %}" class="kargul-btn kargul-btn-primary">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2.5v7M2.5 6h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>New Campaign</span>
+        </a>
+      {% endif %}
     </div>
   </div>
 
-  <!-- VIEW 1: DATA TABLE (List View) -->
-  {% if view_mode == 'list' %}
-  <div class="cm-table-box">
-    <div class="cm-table-scroll">
-      <table class="cm-table">
+  <!-- Main View Area: Table or Board -->
+  {% if view_mode == 'grid' %}
+    <!-- Kargul Board Pipeline View -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+      {% for col_status, col_title in status_columns %}
+        <div style="background: #171717; border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="font-size: 12px; font-weight: 600; color: #cfcfcf; text-transform: uppercase; letter-spacing: 0.04em;">{{ col_title }}</span>
+            <span class="kargul-chip">
+              {{ campaigns|length }}
+            </span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% for c in campaigns %}
+              {% if c.status == col_status or col_status == 'all' %}
+                <a href="{% url 'campaign_detail' c.pk %}" style="background: #1b1d20; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--line-strong)'" onmouseout="this.style.borderColor='var(--border)'">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                    <div style="font-size: 13px; font-weight: 600; color: #f9fbff; line-height: 1.3;">{{ c.name }}</div>
+                    <span class="kargul-badge {% if c.status == 'active' %}kargul-badge-green{% elif c.status == 'draft' %}kargul-badge-neutral{% elif c.status == 'paused' %}kargul-badge-amber{% else %}kargul-badge-blue{% endif %}" style="font-size: 10px;">
+                      {{ c.get_status_display }}
+                    </span>
+                  </div>
+
+                  <div style="font-size: 11.5px; color: #7f7f7f;">
+                    {{ c.category_label|truncatechars:35 }}
+                  </div>
+
+                  <!-- Progress -->
+                  <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <div class="kargul-progress-bar" style="flex: 1;">
+                      <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct|default:0 }}%;"></div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 500; color: #a4a4a4;">{{ c.progress_pct|default:0 }}%</span>
+                  </div>
+
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #232323; font-size: 11px; color: #7f7f7f;">
+                    <span>{{ c.budget_fmt }}</span>
+                    <span>{{ c.milestone_date }}</span>
+                  </div>
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Kargul Data Table View -->
+    <div class="kargul-table-container">
+      <table class="kargul-table">
         <thead>
           <tr>
-            <th style="width: 40px; text-align: center;">
-              <input type="checkbox" class="cm-checkbox" aria-label="Select all campaigns">
+            <th style="width: 32px; text-align: center;">
+              <input type="checkbox" style="accent-color: var(--primary); cursor: pointer; border-radius: 4px;">
             </th>
             <th>Campaign</th>
             <th>Status</th>
+            <th>Lead Strategist</th>
+            <th>Channels</th>
+            <th>Budget & Spent</th>
             <th>Progress</th>
-            <th>Health</th>
-            <th>Next milestone</th>
-            <th>Timeline</th>
-            <th>Owner</th>
-            <th style="width: 40px; text-align: right;"></th>
+            <th>Next Milestone</th>
+            <th style="text-align: right;">Action</th>
           </tr>
         </thead>
         <tbody>
           {% for c in page_obj %}
-          <tr>
-            <!-- Checkbox -->
-            <td style="text-align: center;">
-              <input type="checkbox" class="cm-checkbox" aria-label="Select {{ c.name }}">
-            </td>
+            <tr onclick="window.location.href='{% url 'campaign_detail' c.pk %}'" style="cursor: pointer;">
+              <!-- Select Checkbox -->
+              <td style="text-align: center;" onclick="event.stopPropagation();">
+                <input type="checkbox" style="accent-color: var(--primary); cursor: pointer; border-radius: 4px;">
+              </td>
 
-            <!-- Campaign (Thumbnail + Title + Subtitle) -->
-            <td>
-              <div class="cm-campaign-cell">
-                <div class="cm-thumb {{ c.badge_theme }}">
-                  {% if c.badge_text %}
-                    {{ c.badge_text }}
-                  {% else %}
+              <!-- Campaign Identity -->
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 26px; height: 26px; border-radius: 6px; background: #2a2a2a; border: 1px solid #363636; color: #f9fbff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     {{ c.badge_label }}
+                  </div>
+                  <div>
+                    <div class="kargul-cell-primary" style="line-height: 1.2;">{{ c.name }}</div>
+                    <div style="font-size: 11px; color: #7f7f7f; margin-top: 1px;">
+                      {{ c.issue|default:c.geographic_focus|default:'Strategic Comms'|truncatechars:28 }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Status Tag -->
+              <td>
+                <span class="kargul-badge {% if c.status == 'active' %}kargul-badge-green{% elif c.status == 'draft' %}kargul-badge-neutral{% elif c.status == 'paused' %}kargul-badge-amber{% else %}kargul-badge-blue{% endif %}">
+                  <svg width="6" height="6" viewBox="0 0 6 6" fill="none"><circle cx="3" cy="3" r="3" fill="currentColor"/></svg>
+                  {{ c.get_status_display }}
+                </span>
+              </td>
+
+              <!-- Lead Strategist -->
+              <td>
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <div class="kargul-user-avatar" style="width: 20px; height: 20px; font-size: 9.5px; background: #2a2a2a; border: 1px solid #363636;">
+                    {{ c.owner_initials }}
+                  </div>
+                  <span style="font-size: 12.5px; color: #cfcfcf;">{{ c.owner_name }}</span>
+                </div>
+              </td>
+
+              <!-- Channel Mix -->
+              <td>
+                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                  {% for ch in c.channel_list|slice:':2' %}
+                    <span class="kargul-badge kargul-badge-neutral" style="font-size: 10px; padding: 1px 6px;">
+                      {{ ch.label }}
+                    </span>
+                  {% empty %}
+                    <span style="font-size: 11px; color: #7f7f7f;">Multi-channel</span>
+                  {% endfor %}
+                  {% if c.channel_list|length > 2 %}
+                    <span style="font-size: 10px; color: #7f7f7f;">+{{ c.channel_list|length|add:'-2' }}</span>
                   {% endif %}
                 </div>
+              </td>
+
+              <!-- Budget & Spent -->
+              <td>
                 <div>
-                  <a href="{% url 'campaign_detail' c.pk %}" class="cm-name-title">
-                    {{ c.name }}
-                  </a>
-                  <p class="cm-name-sub">{{ c.category_label }}</p>
+                  <div style="font-weight: 500; color: #f9fbff; font-variant-numeric: tabular-nums;">{{ c.budget_fmt }}</div>
+                  <div style="font-size: 10.5px; color: #7f7f7f; font-variant-numeric: tabular-nums;">Spent: {{ c.spent_fmt }}</div>
                 </div>
-              </div>
-            </td>
+              </td>
 
-            <!-- Status -->
-            <td>
-              <span class="{{ c.status_pill_class }}">
-                {{ c.display_status }}
-              </span>
-            </td>
-
-            <!-- Progress -->
-            <td>
-              <div class="cm-progress-cell">
-                <div class="cm-bar-outer">
-                  <div class="cm-bar-fill {% if c.display_status == 'Completed' %}done{% endif %}" style="width: {{ c.progress_pct }}%;"></div>
+              <!-- Progress & Health -->
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div class="kargul-progress-bar">
+                    <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct }}%;"></div>
+                  </div>
+                  <span style="font-size: 11.5px; font-weight: 500; color: #a4a4a4; font-variant-numeric: tabular-nums;">{{ c.progress_pct }}%</span>
                 </div>
-                <span class="cm-progress-pct">{{ c.progress_pct }}%</span>
-              </div>
-            </td>
+              </td>
 
-            <!-- Health -->
-            <td>
-              <span class="{{ c.health_class }}">
-                {{ c.health_text }}
-              </span>
-            </td>
+              <!-- Next Milestone -->
+              <td>
+                <div style="max-width: 140px;">
+                  <div style="font-size: 12px; color: #cfcfcf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.milestone_title }}</div>
+                  <div style="font-size: 10.5px; color: #7f7f7f;">{{ c.milestone_date }}</div>
+                </div>
+              </td>
 
-            <!-- Next Milestone -->
-            <td>
-              <p class="cm-ms-title">{{ c.milestone_title }}</p>
-              <p class="cm-ms-date">{{ c.milestone_date }}</p>
-            </td>
-
-            <!-- Timeline -->
-            <td>
-              <div class="cm-timeline-text">
-                {{ c.starts_on|date:"M j, Y" }} –<br>{{ c.ends_on|date:"M j, Y" }}
-              </div>
-            </td>
-
-            <!-- Owner -->
-            <td>
-              <div class="cm-owner-cell">
-                <span class="cm-owner-avatar">{{ c.owner_initials }}</span>
-                <span class="cm-owner-name">{{ c.owner_name }}</span>
-              </div>
-            </td>
-
-            <!-- Row Action -->
-            <td style="text-align: right;">
-              <a href="{% url 'campaign_detail' c.pk %}" class="cm-action-icon" title="View campaign">
-                {% lucide "ellipsis" %}
-              </a>
-            </td>
-          </tr>
+              <!-- Action Menu -->
+              <td style="text-align: right;" onclick="event.stopPropagation();">
+                <a href="{% url 'campaign_detail' c.pk %}" class="kargul-btn kargul-btn-secondary kargul-btn-icon" style="display: inline-flex; width: 26px; height: 26px;" aria-label="Open details">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L8 6l-3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+              </td>
+            </tr>
           {% empty %}
-          <tr>
-            <td colspan="9">
-              <div class="cm-empty-box">
-                <div class="cm-empty-icon">
-                  {% lucide "megaphone" %}
-                </div>
-                <h3 class="cm-empty-title">No campaigns found</h3>
-                <p class="cm-empty-text">
-                  {% if search_query or region_filter or audience_filter or status_dropdown %}
-                    No campaigns matched your selected filters. Try clearing filters or searching for different keywords.
-                  {% else %}
-                    You haven't created any campaigns in this workspace yet. You can start planning a new campaign or load the sample campaigns dataset to explore the full dashboard.
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 48px 16px;">
+                <div style="max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                  <div style="width: 42px; height: 42px; border-radius: 50%; background: #222; border: 1px solid #333; display: flex; align-items: center; justify-content: center; color: #7f7f7f;">
+                    {% lucide "megaphone" %}
+                  </div>
+                  <div style="font-size: 14px; font-weight: 600; color: #f9fbff;">No campaigns found</div>
+                  <p style="font-size: 12px; color: #7f7f7f; margin: 0; line-height: 1.4;">
+                    {% if q %}No results match your search query "{{ q }}". Try resetting your filter.{% else %}Get started by creating your first communications campaign.{% endif %}
+                  </p>
+                  {% if membership.role == 'owner' or membership.role == 'manager' %}
+                    <a href="{% url 'campaign_create' %}" class="kargul-btn kargul-btn-primary" style="margin-top: 6px;">
+                      + Create Campaign
+                    </a>
                   {% endif %}
-                </p>
-                <div class="cm-empty-actions">
-                  <a href="{% url 'campaign_create' %}" class="cm-btn-primary" style="margin-bottom: 0;">
-                    {% lucide "plus" %}
-                    <span>Create campaign</span>
-                  </a>
                 </div>
-              </div>
-            </td>
-          </tr>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <!-- Table Footer / Pagination -->
-    {% if page_obj.paginator.count > 0 %}
-    <div class="cm-footer">
-      <div>
-        {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_campaigns }} campaigns
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <nav class="cm-page-nav" aria-label="Campaign pages">
+    <!-- Kargul Pagination Bar -->
+    {% if page_obj.has_other_pages %}
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; font-size: 12px; color: #7f7f7f;">
+        <div>
+          Showing <span style="color: #f9fbff; font-weight: 500;">{{ page_obj.start_index }}-{{ page_obj.end_index }}</span> of <span style="color: #f9fbff; font-weight: 500;">{{ page_obj.paginator.count }}</span> campaigns
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
           {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}&tab={{ tab }}&view={{ view_mode }}{% if search_query %}&q={{ search_query }}{% endif %}"
-             class="cm-page-arrow" title="Previous page">
-            {% lucide "chevron-left" %}
-          </a>
-          {% else %}
-          <span class="cm-page-arrow disabled">
-            {% lucide "chevron-left" %}
-          </span>
+            <a href="?page={{ page_obj.previous_page_number }}&tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" class="kargul-btn kargul-btn-secondary" style="height: 28px; padding: 0 10px;">
+              Previous
+            </a>
           {% endif %}
-
-          {% for p in page_obj.paginator.page_range %}
-            {% if p == page_obj.number %}
-            <span class="cm-page-num active">{{ p }}</span>
-            {% elif p >= page_obj.number|add:-2 and p <= page_obj.number|add:2 %}
-            <a href="?page={{ p }}&tab={{ tab }}&view={{ view_mode }}{% if search_query %}&q={{ search_query }}{% endif %}"
-               class="cm-page-num">{{ p }}</a>
-            {% endif %}
-          {% endfor %}
-
+          <span style="padding: 0 6px; color: #a4a4a4;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
           {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&tab={{ tab }}&view={{ view_mode }}{% if search_query %}&q={{ search_query }}{% endif %}"
-             class="cm-page-arrow" title="Next page">
-            {% lucide "chevron-right" %}
-          </a>
-          {% else %}
-          <span class="cm-page-arrow disabled">
-            {% lucide "chevron-right" %}
-          </span>
+            <a href="?page={{ page_obj.next_page_number }}&tab={{ tab }}&view={{ view_mode }}{% if q %}&q={{ q }}{% endif %}" class="kargul-btn kargul-btn-secondary" style="height: 28px; padding: 0 10px;">
+              Next
+            </a>
           {% endif %}
-        </nav>
-
-        <span style="color: #667085; font-size: 12px; cursor: pointer;">10 per page ⌵</span>
+        </div>
       </div>
-    </div>
     {% endif %}
-  </div>
   {% endif %}
 
-  <!-- VIEW 2: BOARD VIEW -->
-  {% if view_mode == 'board' %}
-  <div class="cm-board-grid">
-    <!-- Planning Column -->
-    <div class="cm-col">
-      <div class="cm-col-head">
-        <span>Planning</span>
-        <span class="cm-col-badge">{{ board_columns.planning|length }}</span>
-      </div>
-      {% for c in board_columns.planning %}
-      <a href="{% url 'campaign_detail' c.pk %}" class="cm-card">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div class="cm-thumb {{ c.badge_theme }}" style="width: 28px; height: 28px; font-size: 8px;">
-            {{ c.badge_label|slice:":2" }}
-          </div>
-          <span style="font-size: 11px; color: #667085;">{{ c.category_label }}</span>
-        </div>
-        <div style="font-size: 13.5px; font-weight: 600; color: #101828;">{{ c.name }}</div>
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #667085; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f2f4f7;">
-          <span>{{ c.starts_on|date:"M j" }} – {{ c.ends_on|date:"M j" }}</span>
-          <span style="font-weight: 600; color: #344054;">{{ c.progress_pct }}%</span>
-        </div>
-      </a>
-      {% empty %}
-      <p style="font-size: 12px; color: #98a2b3; text-align: center; padding: 20px 0;">No planning campaigns.</p>
-      {% endfor %}
-    </div>
-
-    <!-- Active Column -->
-    <div class="cm-col">
-      <div class="cm-col-head">
-        <span style="color: #027a48;">Active</span>
-        <span class="cm-col-badge" style="background: #ecfdf3; color: #027a48;">{{ board_columns.active|length }}</span>
-      </div>
-      {% for c in board_columns.active %}
-      <a href="{% url 'campaign_detail' c.pk %}" class="cm-card">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div class="cm-thumb {{ c.badge_theme }}" style="width: 28px; height: 28px; font-size: 8px;">
-            {{ c.badge_label|slice:":2" }}
-          </div>
-          <span style="font-size: 11px; color: #667085;">{{ c.category_label }}</span>
-        </div>
-        <div style="font-size: 13.5px; font-weight: 600; color: #101828;">{{ c.name }}</div>
-        <div class="cm-bar-outer" style="width: 100%; margin-top: 10px;">
-          <div class="cm-bar-fill" style="width: {{ c.progress_pct }}%;"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #667085; margin-top: 10px; padding-top: 8px; border-top: 1px solid #f2f4f7;">
-          <span>Next: {{ c.milestone_title|truncatechars:15 }}</span>
-          <span class="{{ c.health_class }}">{{ c.health_text }}</span>
-        </div>
-      </a>
-      {% empty %}
-      <p style="font-size: 12px; color: #98a2b3; text-align: center; padding: 20px 0;">No active campaigns.</p>
-      {% endfor %}
-    </div>
-
-    <!-- On hold Column -->
-    <div class="cm-col">
-      <div class="cm-col-head">
-        <span style="color: #b42318;">On hold</span>
-        <span class="cm-col-badge" style="background: #fef3f2; color: #b42318;">{{ board_columns.on_hold|length }}</span>
-      </div>
-      {% for c in board_columns.on_hold %}
-      <a href="{% url 'campaign_detail' c.pk %}" class="cm-card">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div class="cm-thumb {{ c.badge_theme }}" style="width: 28px; height: 28px; font-size: 8px;">
-            {{ c.badge_label|slice:":2" }}
-          </div>
-          <span style="font-size: 11px; color: #667085;">{{ c.category_label }}</span>
-        </div>
-        <div style="font-size: 13.5px; font-weight: 600; color: #101828;">{{ c.name }}</div>
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #667085; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f2f4f7;">
-          <span>{{ c.starts_on|date:"M j" }} – {{ c.ends_on|date:"M j" }}</span>
-          <span class="{{ c.health_class }}">{{ c.health_text }}</span>
-        </div>
-      </a>
-      {% empty %}
-      <p style="font-size: 12px; color: #98a2b3; text-align: center; padding: 20px 0;">No campaigns on hold.</p>
-      {% endfor %}
-    </div>
-
-    <!-- Completed Column -->
-    <div class="cm-col">
-      <div class="cm-col-head">
-        <span style="color: #175cd3;">Completed</span>
-        <span class="cm-col-badge" style="background: #eff8ff; color: #175cd3;">{{ board_columns.completed|length }}</span>
-      </div>
-      {% for c in board_columns.completed %}
-      <a href="{% url 'campaign_detail' c.pk %}" class="cm-card">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div class="cm-thumb {{ c.badge_theme }}" style="width: 28px; height: 28px; font-size: 8px;">
-            {{ c.badge_label|slice:":2" }}
-          </div>
-          <span style="font-size: 11px; color: #667085;">{{ c.category_label }}</span>
-        </div>
-        <div style="font-size: 13.5px; font-weight: 600; color: #101828;">{{ c.name }}</div>
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #667085; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f2f4f7;">
-          <span style="color: #027a48; font-weight: 600;">100% completed</span>
-          <span class="{{ c.health_class }}">{{ c.health_text }}</span>
-        </div>
-      </a>
-      {% empty %}
-      <p style="font-size: 12px; color: #98a2b3; text-align: center; padding: 20px 0;">No completed campaigns.</p>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- VIEW 3: TIMELINE VIEW -->
-  {% if view_mode == 'timeline' %}
-  <div class="cm-timeline-box">
-    <h3 style="font-size: 16px; font-weight: 700; color: #101828; margin: 0 0 16px 0;">Campaign timeline schedule</h3>
-    <div>
-      {% for c in page_obj %}
-      <div class="cm-tl-row">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <a href="{% url 'campaign_detail' c.pk %}" style="font-size: 13.5px; font-weight: 600; color: #101828; text-decoration: none;">
-            {{ c.name }}
-          </a>
-          <span style="font-size: 12px; color: #667085;">{{ c.starts_on|date:"M j, Y" }} – {{ c.ends_on|date:"M j, Y" }}</span>
-        </div>
-        <div class="cm-bar-outer" style="width: 100%; height: 8px;">
-          <div class="cm-bar-fill {% if c.display_status == 'Completed' %}done{% endif %}" style="width: {{ c.progress_pct }}%;"></div>
-        </div>
-      </div>
-      {% empty %}
-      <p style="font-size: 13px; color: #667085;">No scheduled campaigns found.</p>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 </div>
 {% endblock %}
