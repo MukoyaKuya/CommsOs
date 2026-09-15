@@ -3,8 +3,10 @@
 {% block auth_content %}
 <div class="mx-auto max-w-6xl pt-3 sm:pt-6">
   <div class="flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#0c66e4] text-[14px] font-bold text-white">C</span>
+    <div class="flex items-center gap-2.5">
+      <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg" style="background: rgba(234, 88, 12, 0.1); border: 1px solid rgba(234, 88, 12, 0.25);">
+        {% logo 20 %}
+      </div>
       <span class="text-[16px] font-semibold tracking-tight">CommsOS</span>
     </div>
     <a href="{% url 'login' %}" class="btn-default">Sign in</a>

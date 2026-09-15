@@ -1,0 +1,12 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="commsosBurntOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+  </defs>
+  <!-- Upper Left Lozenge -->
+  <rect x="9.5" y="20.5" width="57.5" height="31.2" rx="7.5" transform="rotate(-45 38.3 36.1)" fill="url(#commsosBurntOrangeGrad)"/>
+  <!-- Lower Right Lozenge -->
+  <rect x="32.9" y="48.3" width="57.5" height="31.2" rx="7.5" transform="rotate(-45 61.7 63.9)" fill="url(#commsosBurntOrangeGrad)"/>
+</svg>

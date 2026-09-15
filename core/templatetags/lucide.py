@@ -58,3 +58,22 @@ def lucide(name):
         f'stroke="currentColor" stroke-width="1.75" stroke-linecap="round" '
         f'stroke-linejoin="round" aria-hidden="true" focusable="false">{paths}</svg>'
     )
+
+
+@register.simple_tag
+def logo(size=24, class_name=""):
+    """Render the official CommsOS burnt orange dual-lozenge brand logo."""
+    cls_attr = f' class="{class_name}"' if class_name else ""
+    return mark_safe(
+        f'<svg{cls_attr} width="{size}" height="{size}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CommsOS Logo">'
+        f'<defs>'
+        f'<linearGradient id="commsosBurntOrange" x1="0%" y1="0%" x2="100%" y2="100%">'
+        f'<stop offset="0%" stop-color="#ea580c"/>'
+        f'<stop offset="100%" stop-color="#c2410c"/>'
+        f'</linearGradient>'
+        f'</defs>'
+        f'<rect x="9.5" y="20.5" width="57.5" height="31.2" rx="7.5" transform="rotate(-45 38.3 36.1)" fill="url(#commsosBurntOrange)"/>'
+        f'<rect x="32.9" y="48.3" width="57.5" height="31.2" rx="7.5" transform="rotate(-45 61.7 63.9)" fill="url(#commsosBurntOrange)"/>'
+        f'</svg>'
+    )
+

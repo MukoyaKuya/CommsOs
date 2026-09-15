@@ -258,15 +258,26 @@ html, body {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #4338ca, #2563eb);
+  background: rgba(234, 88, 12, 0.08);
+  border: 1px solid rgba(234, 88, 12, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0px 2px 4px rgba(37, 99, 235, 0.25);
-  color: #fff;
-  font-weight: 700;
-  font-size: 14px;
+  box-shadow: 0px 1px 3px rgba(194, 65, 12, 0.12);
+  transition: all 0.15s ease;
+}
+
+.kargul-brand-mark:hover {
+  background: rgba(234, 88, 12, 0.14);
+  border-color: rgba(234, 88, 12, 0.35);
+  transform: translateY(-0.5px);
+}
+
+[data-theme="dark"] .kargul-brand-mark {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.25);
+  box-shadow: 0 0 14px rgba(234, 88, 12, 0.15);
 }
 
 .kargul-sidebar-nav-scroll {
