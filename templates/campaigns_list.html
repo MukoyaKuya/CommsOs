@@ -121,11 +121,11 @@
     <div style="display: flex; align-items: center; gap: 8px;">
       <!-- View Toggle -->
       <div class="kargul-segmented" style="padding: 2px;">
-        <a href="?view=list&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'list' %}background: #f1f5f9; color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px #cbd5e1;{% else %}color: #64748b;{% endif %}">
+        <a href="?view=list&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'list' %}background: var(--muted); color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border);{% else %}color: var(--subtle);{% endif %}">
           {% lucide "list" %}
           <span>List</span>
         </a>
-        <a href="?view=grid&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'grid' %}background: #f1f5f9; color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px #cbd5e1;{% else %}color: #64748b;{% endif %}">
+        <a href="?view=grid&tab={{ tab }}{% if q %}&q={{ q }}{% endif %}{% if channel %}&channel={{ channel }}{% endif %}" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 9999px; text-decoration: none; font-size: 11.5px; {% if view_mode == 'grid' %}background: var(--muted); color: var(--primary); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border);{% else %}color: var(--subtle);{% endif %}">
           {% lucide "kanban" %}
           <span>Board</span>
         </a>
@@ -146,9 +146,9 @@
     <!-- Kargul Board Pipeline View -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
       {% for col_status, col_title in status_columns %}
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: var(--card-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
-            <span style="font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">{{ col_title }}</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: 0.04em;">{{ col_title }}</span>
             <span class="kargul-chip">
               {{ campaigns|length }}
             </span>
@@ -157,7 +157,7 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             {% for c in campaigns %}
               {% if c.status == col_status or col_status == 'all' %}
-                <a href="{% url 'campaign_detail' c.pk %}" style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(16,24,40,0.04); transition: border-color 0.15s, box-shadow 0.15s;" onmouseover="this.style.borderColor='var(--line-strong)'; this.style.boxShadow='0 4px 10px rgba(16,24,40,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.boxShadow='0 1px 3px rgba(16,24,40,0.04)';">
+                <a href="{% url 'campaign_detail' c.pk %}" style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--card-shadow); transition: border-color 0.15s, box-shadow 0.15s;" onmouseover="this.style.borderColor='var(--line-strong)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.12)';" onmouseout="this.style.borderColor='var(--border)'; this.style.boxShadow='var(--card-shadow)';">
                   <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
                     <div style="font-size: 13px; font-weight: 600; color: var(--foreground); line-height: 1.3;">{{ c.name }}</div>
                     <span class="kargul-badge {% if c.status == 'active' %}kargul-badge-green{% elif c.status == 'draft' %}kargul-badge-neutral{% elif c.status == 'paused' %}kargul-badge-amber{% else %}kargul-badge-blue{% endif %}" style="font-size: 10px;">
@@ -165,7 +165,7 @@
                     </span>
                   </div>
 
-                  <div style="font-size: 11.5px; color: #64748b;">
+                  <div style="font-size: 11.5px; color: var(--subtle);">
                     {{ c.category_label|truncatechars:35 }}
                   </div>
 
@@ -174,10 +174,10 @@
                     <div class="kargul-progress-bar" style="flex: 1;">
                       <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct|default:0 }}%;"></div>
                     </div>
-                    <span style="font-size: 11px; font-weight: 500; color: #64748b;">{{ c.progress_pct|default:0 }}%</span>
+                    <span style="font-size: 11px; font-weight: 500; color: var(--subtle);">{{ c.progress_pct|default:0 }}%</span>
                   </div>
 
-                  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid var(--border); font-size: 11px; color: var(--subtle);">
                     <span>{{ c.budget_fmt }}</span>
                     <span>{{ c.milestone_date }}</span>
                   </div>
@@ -219,12 +219,12 @@
               <!-- Campaign Identity -->
               <td>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 26px; height: 26px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; color: var(--foreground); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <div style="width: 26px; height: 26px; border-radius: 6px; background: var(--muted); border: 1px solid var(--border); color: var(--foreground); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     {{ c.badge_label }}
                   </div>
                   <div>
                     <div class="kargul-cell-primary" style="line-height: 1.2;">{{ c.name }}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px;">
+                    <div style="font-size: 11px; color: var(--subtle); margin-top: 1px;">
                       {{ c.issue|default:c.geographic_focus|default:'Strategic Comms'|truncatechars:28 }}
                     </div>
                   </div>
@@ -245,7 +245,7 @@
                   <div class="kargul-user-avatar" style="width: 20px; height: 20px; font-size: 9.5px;">
                     {{ c.owner_initials }}
                   </div>
-                  <span style="font-size: 12.5px; color: #334155;">{{ c.owner_name }}</span>
+                  <span style="font-size: 12.5px; color: var(--soft);">{{ c.owner_name }}</span>
                 </div>
               </td>
 
@@ -257,10 +257,10 @@
                       {{ ch.label }}
                     </span>
                   {% empty %}
-                    <span style="font-size: 11px; color: #64748b;">Multi-channel</span>
+                    <span style="font-size: 11px; color: var(--subtle);">Multi-channel</span>
                   {% endfor %}
                   {% if c.channel_list|length > 2 %}
-                    <span style="font-size: 10px; color: #64748b;">+{{ c.channel_list|length|add:'-2' }}</span>
+                    <span style="font-size: 10px; color: var(--subtle);">+{{ c.channel_list|length|add:'-2' }}</span>
                   {% endif %}
                 </div>
               </td>
@@ -269,7 +269,7 @@
               <td>
                 <div>
                   <div style="font-weight: 600; color: var(--foreground); font-variant-numeric: tabular-nums;">{{ c.budget_fmt }}</div>
-                  <div style="font-size: 10.5px; color: #64748b; font-variant-numeric: tabular-nums;">Spent: {{ c.spent_fmt }}</div>
+                  <div style="font-size: 10.5px; color: var(--subtle); font-variant-numeric: tabular-nums;">Spent: {{ c.spent_fmt }}</div>
                 </div>
               </td>
 
@@ -279,7 +279,7 @@
                   <div class="kargul-progress-bar">
                     <div class="kargul-progress-fill {% if c.is_on_track %}green{% endif %}" style="width: {{ c.progress_pct }}%;"></div>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 500; color: #475467; font-variant-numeric: tabular-nums;">{{ c.progress_pct }}%</span>
+                  <span style="font-size: 11.5px; font-weight: 500; color: var(--soft); font-variant-numeric: tabular-nums;">{{ c.progress_pct }}%</span>
                 </div>
               </td>
 
@@ -287,7 +287,7 @@
               <td>
                 <div style="max-width: 140px;">
                   <div style="font-size: 12px; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.milestone_title }}</div>
-                  <div style="font-size: 10.5px; color: #64748b;">{{ c.milestone_date }}</div>
+                  <div style="font-size: 10.5px; color: var(--subtle);">{{ c.milestone_date }}</div>
                 </div>
               </td>
 
@@ -302,11 +302,11 @@
             <tr>
               <td colspan="9" style="text-align: center; padding: 48px 16px;">
                 <div style="max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                  <div style="width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                  <div style="width: 42px; height: 42px; border-radius: 50%; background: var(--muted); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--subtle);">
                     {% lucide "megaphone" %}
                   </div>
                   <div style="font-size: 14px; font-weight: 600; color: var(--foreground);">No campaigns found</div>
-                  <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4;">
+                  <p style="font-size: 12px; color: var(--subtle); margin: 0; line-height: 1.4;">
                     {% if q %}No results match your search query "{{ q }}". Try resetting your filter.{% else %}Get started by creating your first communications campaign.{% endif %}
                   </p>
                   {% if membership.role == 'owner' or membership.role == 'manager' %}
