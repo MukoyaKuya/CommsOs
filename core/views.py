@@ -51,6 +51,8 @@ def dashboard(request):
                 "upcoming_items": [],
                 "recent_activity": [],
                 "channel_performance": [],
+                "chart_meta": {"has_data": False, "points": [], "line_path": "", "area_path": ""},
+                "has_notifications": False,
             },
         )
 
@@ -61,19 +63,46 @@ def dashboard(request):
     task_total = tasks.count()
     task_done = tasks.filter(status="done").count()
     observations = Observation.objects.filter(campaign_id__in=campaign_ids)
-    totals = observations.aggregate(impressions=Sum("impressions"), engagements=Sum("engagements"))
+    totals = observations.aggregate(
+        impressions=Sum("impressions"),
+        engagements=Sum("engagements"),
+        clicks=Sum("clicks"),
+    )
     impressions = totals["impressions"] or 0
     engagements = totals["engagements"] or 0
+    clicks = totals["clicks"] or 0
     engagement_rate = round(100 * engagements / impressions, 1) if impressions else None
 
+    today = timezone.localdate()
     for campaign in campaigns:
         campaign_tasks = campaign.tasks.all()
-        total = campaign_tasks.count()
-        completed = campaign_tasks.filter(status="done").count()
-        campaign.dashboard_progress = round(100 * completed / total) if total else 0
-        campaign.dashboard_health = min(100, 70 + campaign.plan_revision * 8)
+        c_total = campaign_tasks.count()
+        c_completed = campaign_tasks.filter(status="done").count()
+        c_overdue = (
+            campaign_tasks.filter(due_on__lt=today)
+            .exclude(status__in=["done", "cancelled"])
+            .count()
+        )
+        campaign.dashboard_progress = round(100 * c_completed / c_total) if c_total else 0
+        if c_total == 0:
+            campaign.dashboard_health = None
+            campaign.health_label = "Planning"
+            campaign.health_badge_class = "neutral"
+        elif c_overdue > 0:
+            campaign.dashboard_health = round(100 * (c_total - c_overdue) / c_total)
+            campaign.health_label = f"{c_overdue} overdue"
+            campaign.health_badge_class = "warn"
+        elif c_completed == c_total:
+            campaign.dashboard_health = 100
+            campaign.health_label = "Complete"
+            campaign.health_badge_class = "good"
+        else:
+            campaign.dashboard_health = 100
+            campaign.health_label = "On track"
+            campaign.health_badge_class = "good"
+
         campaign.dashboard_next = (
-            campaign.items.filter(planned_on__gte=timezone.localdate())
+            campaign.items.filter(planned_on__gte=today)
             .order_by("planned_on")
             .first()
         )
@@ -94,31 +123,109 @@ def dashboard(request):
     for row in channel_rows:
         row["bar_width"] = round(100 * (row["rate"] or 0) / max_rate) if max_rate else 0
 
+    # Real time-series calculation from stored observations
+    timeline_qs = (
+        observations.values("observed_on")
+        .annotate(impressions=Sum("impressions"), engagements=Sum("engagements"))
+        .order_by("observed_on")
+    )
+    chart_points = []
+    for row in timeline_qs:
+        r_impr = row["impressions"] or 0
+        r_eng = row["engagements"] or 0
+        r_rate = round(100 * r_eng / r_impr, 1) if r_impr else 0.0
+        chart_points.append({
+            "date": row["observed_on"],
+            "rate": r_rate,
+            "impressions": r_impr,
+            "engagements": r_eng,
+        })
+
+    max_observed = max((p["rate"] for p in chart_points), default=0.0)
+    y_ceil = max(5.0, round(max_observed * 1.25, 1)) if max_observed > 0 else 10.0
+    y_mid = round(y_ceil / 2, 1)
+
+    chart_meta = {
+        "has_data": len(chart_points) > 0,
+        "axis_top": f"{int(y_ceil)}%" if y_ceil.is_integer() else f"{y_ceil:.1f}%",
+        "axis_mid": f"{int(y_mid)}%" if y_mid.is_integer() else f"{y_mid:.1f}%",
+        "axis_low": "0%",
+        "points": chart_points,
+        "start_date": chart_points[0]["date"] if chart_points else None,
+        "end_date": chart_points[-1]["date"] if chart_points else None,
+    }
+
+    if len(chart_points) == 1:
+        pt = chart_points[0]
+        y_val = 125.0 - (pt["rate"] / y_ceil) * 110.0
+        pt["x"] = 300.0
+        pt["y"] = round(y_val, 1)
+        chart_meta["line_path"] = f"M 40 {pt['y']} L 560 {pt['y']}"
+        chart_meta["area_path"] = f"M 40 {pt['y']} L 560 {pt['y']} L 560 125 L 40 125 Z"
+    elif len(chart_points) > 1:
+        n = len(chart_points)
+        dx = 520.0 / (n - 1)
+        cmds = []
+        for idx, pt in enumerate(chart_points):
+            pt["x"] = round(40.0 + idx * dx, 1)
+            pt["y"] = round(125.0 - (pt["rate"] / y_ceil) * 110.0, 1)
+            cmds.append(f"{'M' if idx == 0 else 'L'} {pt['x']} {pt['y']}")
+        line_str = " ".join(cmds)
+        chart_meta["line_path"] = line_str
+        chart_meta["area_path"] = f"{line_str} L {chart_points[-1]['x']} 125 L {chart_points[0]['x']} 125 Z"
+    else:
+        chart_meta["line_path"] = ""
+        chart_meta["area_path"] = ""
+
     latest_insight = Insight.objects.filter(campaign_id__in=campaign_ids).order_by("-created_at").first()
     latest_recommendation = (
         Recommendation.objects.filter(campaign_id__in=campaign_ids, status="proposed")
         .order_by("-created_at")
         .first()
     )
+
+    if engagement_rate is None:
+        rate_label = "No data"
+    elif engagement_rate >= 10.0:
+        rate_label = "High engagement"
+    elif engagement_rate >= 3.0:
+        rate_label = "Healthy"
+    else:
+        rate_label = "Low engagement"
+
+    has_notifications = (
+        tasks.filter(due_on__lt=today).exclude(status__in=["done", "cancelled"]).exists()
+        or latest_recommendation is not None
+    )
+
     context = {
         "membership": membership,
         "campaigns": campaigns,
         "dashboard_metrics": {
             "active_campaigns": sum(c.status == "active" for c in campaigns),
+            "total_campaigns": len(campaigns),
             "task_completion": round(100 * task_done / task_total) if task_total else 0,
+            "task_done": task_done,
+            "task_total": task_total,
             "content_count": ContentItem.objects.filter(campaign_id__in=campaign_ids).count(),
             "engagement_rate": engagement_rate,
+            "rate_label": rate_label,
+            "total_impressions": f"{impressions:,}" if impressions else "0",
+            "total_engagements": f"{engagements:,}" if engagements else "0",
+            "total_clicks": f"{clicks:,}" if clicks else "0",
         },
-        "my_tasks": tasks.exclude(status__in=["done", "cancelled"]).order_by("due_on")[:4],
+        "my_tasks": tasks.exclude(status__in=["done", "cancelled"]).order_by("due_on")[:5],
         "upcoming_items": ContentItem.objects.filter(
-            campaign_id__in=campaign_ids, planned_on__gte=timezone.localdate()
-        ).order_by("planned_on")[:3],
+            campaign_id__in=campaign_ids, planned_on__gte=today
+        ).order_by("planned_on")[:4],
         "recent_activity": AuditEvent.objects.filter(organization=organization)
         .select_related("actor", "campaign")
-        .order_by("-created_at")[:4],
+        .order_by("-created_at")[:5],
         "channel_performance": channel_rows,
+        "chart_meta": chart_meta,
         "latest_insight": latest_insight,
         "latest_recommendation": latest_recommendation,
+        "has_notifications": has_notifications,
     }
     return render(request, "dashboard.html", context)
 

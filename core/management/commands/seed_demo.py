@@ -44,17 +44,17 @@ class Command(BaseCommand):
             },
         )
         if not campaign.observations.exists():
-            for channel, fmt, impressions, engagements in [
-                ("TikTok", "short video", 1800, 216),
-                ("TikTok", "short video", 2200, 242),
-                ("Instagram", "carousel", 2000, 90),
-                ("Instagram", "carousel", 1500, 75),
+            for days_ago, channel, fmt, impressions, engagements in [
+                (6, "Instagram", "carousel", 1500, 75),
+                (4, "Instagram", "carousel", 2000, 90),
+                (2, "TikTok", "short video", 1800, 216),
+                (0, "TikTok", "short video", 2200, 242),
             ]:
                 Observation.objects.create(
                     campaign=campaign,
                     channel=channel,
                     format=fmt,
-                    observed_on=start,
+                    observed_on=start - timedelta(days=days_ago),
                     impressions=impressions,
                     engagements=engagements,
                     source="demo",
