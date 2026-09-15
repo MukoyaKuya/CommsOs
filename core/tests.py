@@ -268,3 +268,28 @@ class CampaignFlowTests(TestCase):
         self.assertEqual(self.campaign.plan_revision, 2)
         with self.assertRaises(ValidationError):
             services.apply_recommendation(self.user, self.campaign)
+
+    def test_campaigns_list_renders_for_authorized_user(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("campaigns_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Campaigns")
+        self.assertContains(response, self.campaign.name)
+        self.assertEqual(response.context["metrics"]["total"], 1)
+
+    def test_campaigns_list_cross_org_isolation(self):
+        other_campaign = Campaign.objects.create(
+            organization=self.other_org,
+            name="Secret Two",
+            objective="Other objective",
+            audience="Other audience",
+            channels="Email",
+            starts_on=date.today(),
+            ends_on=date.today() + timedelta(days=10),
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("campaigns_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.campaign.name)
+        self.assertNotContains(response, "Secret Two")
+

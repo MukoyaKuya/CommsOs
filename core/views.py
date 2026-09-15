@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.core.paginator import Paginator
 from django.utils import timezone
 from .forms import CampaignForm, ObservationForm, StrategyEditForm, ContentItemForm
 from .models import (
@@ -228,6 +229,260 @@ def dashboard(request):
         "has_notifications": has_notifications,
     }
     return render(request, "dashboard.html", context)
+
+
+@login_required
+def campaigns_list(request):
+    membership = membership_for(request.user)
+    if not membership:
+        return render(
+            request,
+            "campaigns_list.html",
+            {
+                "membership": None,
+                "page_obj": None,
+                "campaigns": [],
+                "metrics": {},
+                "tab": "all",
+                "view_mode": "list",
+            },
+        )
+
+    organization = membership.organization
+    today = timezone.localdate()
+    all_campaigns = list(
+        Campaign.objects.filter(organization=organization).order_by("-created_at")
+    )
+    total_campaigns = len(all_campaigns)
+
+    active_count = sum(1 for c in all_campaigns if c.status == "active")
+    planning_count = sum(1 for c in all_campaigns if c.status == "draft")
+    on_hold_count = sum(1 for c in all_campaigns if c.status == "paused")
+    completed_count = sum(
+        1
+        for c in all_campaigns
+        if c.status == "archived" or (c.ends_on < today and c.status != "paused")
+    )
+
+    on_track_count = 0
+    at_risk_count = 0
+    completed_this_year = 0
+
+    # Color palette for campaign avatars/thumbnails
+    palette = [
+        {"bg": "bg-[#0f274a]", "text": "text-white", "icon": "megaphone"},
+        {"bg": "bg-[#e02424]", "text": "text-white", "icon": "activity"},
+        {"bg": "bg-[#046c4e]", "text": "text-white", "icon": "sparkles"},
+        {"bg": "bg-[#03543f]", "text": "text-white", "icon": "image"},
+        {"bg": "bg-[#1e429f]", "text": "text-white", "icon": "library-big"},
+        {"bg": "bg-[#5b21b6]", "text": "text-white", "icon": "users"},
+        {"bg": "bg-[#7e3af2]", "text": "text-white", "icon": "file-text"},
+        {"bg": "bg-[#9f580a]", "text": "text-white", "icon": "calendar-days"},
+    ]
+
+    for idx, c in enumerate(all_campaigns):
+        c_tasks = c.tasks.all()
+        t_count = c_tasks.count()
+        t_done = c_tasks.filter(status="done").count()
+        t_overdue = (
+            c_tasks.filter(due_on__lt=today)
+            .exclude(status__in=["done", "cancelled"])
+            .count()
+        )
+        c.progress_pct = round(100 * t_done / t_count) if t_count else 0
+
+        # Visual style thumbnail
+        c.theme = palette[idx % len(palette)]
+        c.initials = "".join([w[:1] for w in c.name.split()[:2]]).upper() or "C"
+
+        # Status normalization for reference UI
+        if c.status == "active":
+            c.display_status = "Active"
+            c.status_pill_class = "pill-active"
+        elif c.status == "draft":
+            c.display_status = "Planning"
+            c.status_pill_class = "pill-planning"
+        elif c.status == "paused":
+            c.display_status = "On hold"
+            c.status_pill_class = "pill-onhold"
+        elif c.status == "archived" or (c.ends_on < today and c.status != "paused"):
+            c.display_status = "Completed"
+            c.status_pill_class = "pill-completed"
+        else:
+            c.display_status = c.status.capitalize()
+            c.status_pill_class = "pill-planning"
+
+        # Health calculation
+        if c.display_status == "Planning" and t_count == 0:
+            c.health_score = None
+            c.health_text = "—"
+            c.health_class = "health-neutral"
+            c.is_on_track = True
+        elif t_overdue > 0:
+            c.health_score = max(30, round(100 * (t_count - t_overdue) / t_count))
+            c.health_text = f"{c.health_score}%"
+            c.health_class = "health-danger" if c.health_score < 60 else "health-warn"
+            c.is_on_track = False
+        elif c.display_status == "Completed":
+            c.health_score = 100 if t_done == t_count else 88
+            c.health_text = f"{c.health_score}%"
+            c.health_class = "health-good"
+            c.is_on_track = True
+        else:
+            c.health_score = max(70, min(95, 75 + c.progress_pct // 4))
+            c.health_text = f"{c.health_score}%"
+            c.health_class = "health-good"
+            c.is_on_track = True
+
+        if c.is_on_track:
+            on_track_count += 1
+        else:
+            at_risk_count += 1
+
+        if c.display_status == "Completed" and c.ends_on.year == today.year:
+            completed_this_year += 1
+
+        # Next milestone
+        next_task = (
+            c_tasks.filter(due_on__gte=today)
+            .exclude(status="done")
+            .order_by("due_on")
+            .first()
+        )
+        next_item = c.items.filter(planned_on__gte=today).order_by("planned_on").first()
+        if next_task:
+            c.milestone_title = next_task.title
+            c.milestone_date = next_task.due_on.strftime("%b %d, %Y")
+        elif next_item:
+            c.milestone_title = next_item.title
+            c.milestone_date = next_item.planned_on.strftime("%b %d, %Y")
+        elif c.display_status == "Completed":
+            c.milestone_title = "Campaign debrief"
+            c.milestone_date = "Completed"
+        else:
+            c.milestone_title = "Define messaging"
+            c.milestone_date = c.starts_on.strftime("%b %d, %Y")
+
+        # Subtitle / Category
+        c.category_label = c.issue or c.geographic_focus or "Strategic Initiative"
+
+        # Owner attribution
+        c.owner_name = request.user.get_full_name() or request.user.username
+        if request.user.first_name and request.user.last_name:
+            c.owner_initials = (
+                request.user.first_name[:1] + request.user.last_name[:1]
+            ).upper()
+        else:
+            c.owner_initials = request.user.username[:2].upper()
+
+    # Tab filter
+    tab = request.GET.get("tab", "all").strip().lower()
+    filtered_list = all_campaigns
+    if tab == "active":
+        filtered_list = [c for c in filtered_list if c.display_status == "Active"]
+    elif tab == "planning":
+        filtered_list = [c for c in filtered_list if c.display_status == "Planning"]
+    elif tab == "on_hold":
+        filtered_list = [c for c in filtered_list if c.display_status == "On hold"]
+    elif tab == "completed":
+        filtered_list = [c for c in filtered_list if c.display_status == "Completed"]
+
+    # Search filter
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        q_lower = search_query.lower()
+        filtered_list = [
+            c
+            for c in filtered_list
+            if q_lower in c.name.lower()
+            or q_lower in (c.objective or "").lower()
+            or q_lower in (c.audience or "").lower()
+            or q_lower in (c.geographic_focus or "").lower()
+            or q_lower in (c.issue or "").lower()
+        ]
+
+    # Region dropdown filter
+    region_filter = request.GET.get("region", "").strip()
+    if region_filter:
+        filtered_list = [
+            c
+            for c in filtered_list
+            if c.geographic_focus
+            and region_filter.lower() in c.geographic_focus.lower()
+        ]
+
+    # Audience dropdown filter
+    audience_filter = request.GET.get("audience", "").strip()
+    if audience_filter:
+        filtered_list = [
+            c
+            for c in filtered_list
+            if c.audience and audience_filter.lower() in c.audience.lower()
+        ]
+
+    # Status dropdown filter
+    status_dropdown = request.GET.get("status", "").strip()
+    if status_dropdown:
+        filtered_list = [
+            c
+            for c in filtered_list
+            if c.display_status.lower() == status_dropdown.lower()
+        ]
+
+    regions = sorted({c.geographic_focus for c in all_campaigns if c.geographic_focus})
+    audiences = sorted({c.audience for c in all_campaigns if c.audience})
+
+    # View Mode (list, board, timeline)
+    view_mode = request.GET.get("view", "list").lower()
+    if view_mode not in ("list", "board", "timeline"):
+        view_mode = "list"
+
+    # Board view grouping
+    board_columns = {
+        "planning": [c for c in filtered_list if c.display_status == "Planning"],
+        "active": [c for c in filtered_list if c.display_status == "Active"],
+        "on_hold": [c for c in filtered_list if c.display_status == "On hold"],
+        "completed": [c for c in filtered_list if c.display_status == "Completed"],
+    }
+
+    # Pagination for list view
+    page_size = int(request.GET.get("page_size", 10))
+    paginator = Paginator(filtered_list, page_size)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "membership": membership,
+        "tab": tab,
+        "search_query": search_query,
+        "region_filter": region_filter,
+        "audience_filter": audience_filter,
+        "status_dropdown": status_dropdown,
+        "regions": regions,
+        "audiences": audiences,
+        "view_mode": view_mode,
+        "board_columns": board_columns,
+        "page_obj": page_obj,
+        "filtered_total": len(filtered_list),
+        "total_campaigns": total_campaigns,
+        "metrics": {
+            "total": total_campaigns,
+            "active": active_count,
+            "planning": planning_count,
+            "on_hold": on_hold_count,
+            "completed": completed_count,
+            "on_track_count": on_track_count,
+            "on_track_pct": round(100 * on_track_count / total_campaigns)
+            if total_campaigns
+            else 0,
+            "at_risk_count": at_risk_count,
+            "at_risk_pct": round(100 * at_risk_count / total_campaigns)
+            if total_campaigns
+            else 0,
+            "completed_this_year": completed_this_year,
+        },
+    }
+    return render(request, "campaigns_list.html", context)
 
 
 @login_required

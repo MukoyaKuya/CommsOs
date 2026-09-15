@@ -9,6 +9,7 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", views.landing, name="landing"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("campaigns/", views.campaigns_list, name="campaigns_list"),
     path("campaigns/new/", views.campaign_create, name="campaign_create"),
     path("campaigns/<uuid:pk>/", views.campaign_detail, name="campaign_detail"),
     path("campaigns/<uuid:pk>/edit/", views.campaign_edit, name="campaign_edit"),
