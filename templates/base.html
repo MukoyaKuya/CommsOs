@@ -21,8 +21,8 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <link rel="stylesheet" href="{% static 'css/kargul_theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20260916-6">
+  <link rel="stylesheet" href="{% static 'css/kargul_theme.css' %}?v=20260916-6">
   <script defer src="{% static 'js/htmx.min.js' %}"></script>
   <script defer src="{% static 'js/alpine.min.js' %}"></script>
 </head>
@@ -223,7 +223,7 @@
   </div>
 </div>
 {% else %}
-<main style="min-height: 100vh; background: var(--background); display: flex; align-items: center; justify-content: center; padding: 24px;">
+<main class="{% block auth_main_class %}auth-page-main{% endblock %}">
   {% block auth_content %}{% endblock %}
 </main>
 {% endif %}
