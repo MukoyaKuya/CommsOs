@@ -5,7 +5,7 @@
 ## The product to ship
  
 One organization, one demo campaign, and one complete persisted path:
- 
+  
 1. Create/edit the campaign brief.
 2. Generate a structured strategy draft with AI, edit it, approve it.
 3. Generate a small dated content plan from that approved strategy; review and apply it.
