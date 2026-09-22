@@ -3,7 +3,7 @@
 **Submission deadline in the official rules:** 15 September 2026, 23:00 EDT / 16 September 2026, 06:00 EAT. Submit with a buffer; do not plan to finish at the deadline.
 
 ## The product to ship
-
+ 
 One organization, one demo campaign, and one complete persisted path:
 
 1. Create/edit the campaign brief.
